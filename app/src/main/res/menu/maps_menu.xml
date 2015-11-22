@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/refresh_rate"
+        android:title="@string/options_menu_refresh_rate"
+        android:icon="@drawable/ic_refresh"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/hot_cold_margins"
+        android:title="@string/options_menu_hot_cold_margins"/>
+    <item android:id="@+id/contact"
+        android:title="@string/options_menu_contact"/>
+</menu>
