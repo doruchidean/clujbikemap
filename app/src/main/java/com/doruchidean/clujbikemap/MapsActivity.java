@@ -1,10 +1,11 @@
 package com.doruchidean.clujbikemap;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +22,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.edmodo.rangebar.RangeBar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -68,7 +71,7 @@ public class MapsActivity extends AppCompatActivity
         if (!hasGooglePlayServicesAvailable()) return;
 
         if(!hasNetworkConnection()){
-            askForSettings();
+            askForInternetConnection();
             return;
         }
 
@@ -81,7 +84,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
 
-    private void askForSettings(){
+    private void askForInternetConnection(){
 
         AlertDialog dialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
@@ -171,12 +174,13 @@ public class MapsActivity extends AppCompatActivity
 
     private void setUpMap() {
 
-        StationsModel station;
         MarkerOptions markerOptions;
+
+        mMap.clear();
 
         for(int i = 0; i < mStationsArray.size(); i++) {
 
-            station = mStationsArray.get(i);
+            StationsModel station = mStationsArray.get(i);
 
             markerOptions = new MarkerOptions();
             markerOptions.position(new LatLng(station.latitude, station.longitude));
@@ -212,6 +216,19 @@ public class MapsActivity extends AppCompatActivity
                         TextView tvStatus = (TextView) v.findViewById(R.id.tvStatus);
 
                         StationsModel s = mStationsArray.get(i);
+
+                        Log.v("traces", " name:" + s.stationName +
+                                " address:" + s.address +
+                                " empty spots:" + s.emptySpots +
+                                " occupied spots:" + s.ocuppiedSpots +
+                                " status type:" + s.statusType +
+                                " custom is valid:" + s.customIsValid +
+                                " is valid:" + s.isValid +
+                                " station status:" + s.stationStatus +
+                                " last sync date:" + s.lastSyncDate+
+                                " id:"+s.id+
+                                " id status:"+s.idStatus+
+                                " maximum nr of bikes: "+ s.maximumNumberOfBikes);
 
                         tvName.setText(s.stationName);
                         tvAddress.setText(s.address);
@@ -306,13 +323,31 @@ public class MapsActivity extends AppCompatActivity
     private void showMarginsDialog(){
         View dialogContainer = View.inflate(MapsActivity.this, R.layout.margings_dialog, null);
 
-        TextView tvColdMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_cold);
-        TextView tvHotMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_hot);
+        final TextView tvColdMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_cold);
+        final TextView tvHotMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_hot);
 
         tvColdMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_cold), mColdLimit));
         tvHotMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_hot), mHotLimit));
 
-        //todo add numberpicker for both and save margins value locally
+        final byte hypotheticRange = 30;
+
+        RangeBar rangeBar = (RangeBar) dialogContainer.findViewById(R.id.rangebar);
+        rangeBar.setTickCount(hypotheticRange+1); //todo test margins working correctly
+        rangeBar.setThumbIndices(mColdLimit, hypotheticRange - mHotLimit);
+        rangeBar.setConnectingLineColor(Color.GREEN);
+        rangeBar.setThumbColorNormal(Color.GREEN);
+        rangeBar.setThumbColorPressed(Color.RED);
+        rangeBar.setBackgroundResource(R.drawable.background_rangebar);
+        rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
+            @Override
+            public void onIndexChangeListener(RangeBar rangeBar, int i, int i1) {
+                mColdLimit = i;
+                mHotLimit = hypotheticRange - i1;
+
+                tvColdMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_cold), mColdLimit));
+                tvHotMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_hot), mHotLimit));
+            }
+        });
 
         AlertDialog dialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
@@ -322,6 +357,14 @@ public class MapsActivity extends AppCompatActivity
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+
+                        SharedPreferences.Editor e = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE).edit();
+                        e.putInt(COLD_LIMIT, mColdLimit);
+                        e.putInt(HOT_LIMIT, mHotLimit);
+                        e.apply();
+
+                        setUpMap();
+
                         dialog.dismiss();
                     }
                 });

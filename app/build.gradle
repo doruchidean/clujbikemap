@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+    }
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
-
     defaultConfig {
         applicationId "com.doruchidean.clujbikemap"
         minSdkVersion 15
         targetSdkVersion 22
-        versionCode 1
+        versionCode 2
         versionName "1.0"
     }
     buildTypes {
@@ -26,4 +27,5 @@ dependencies {
     compile 'com.loopj.android:android-async-http:1.4.8'
     compile 'com.android.support:design:22.2.1'
     compile 'com.android.support:support-v4:22.2.1'
+    compile 'com.edmodo:rangebar:1.0.0'
 }

@@ -35,9 +35,12 @@ public class HttpResponseFactory {
 
                 StationsModel s = new StationsModel();
 
+                s.stationName = j.getString("StationName");
                 s.address = j.getString("Address");
-                s.customIsValid = j.getBoolean("CustomIsValid");
                 s.emptySpots = j.getInt("EmptySpots");
+                s.ocuppiedSpots = j.getInt("OcuppiedSpots");
+                s.statusType = j.getString("StatusType");
+                s.customIsValid = j.getBoolean("CustomIsValid");
                 s.id = j.getInt("Id");
                 s.idStatus = j.getInt("IdStatus");
                 s.isValid = j.getBoolean("IsValid");
@@ -45,14 +48,10 @@ public class HttpResponseFactory {
                 s.latitude = j.getDouble("Latitude");
                 s.longitude = j.getDouble("Longitude");
                 s.maximumNumberOfBikes = j.getInt("MaximumNumberOfBikes");
-                s.ocuppiedSpots = j.getInt("OcuppiedSpots");
-                s.stationName = j.getString("StationName");
                 s.stationStatus = j.getString("Status");
-                s.statusType = j.getString("StatusType");
 
                 stationsArray.add(s);
 
-                Log.d("traces", s.stationName + " " + s.statusType + " biciclete " + s.ocuppiedSpots);
             }
 
         } catch (JSONException e) {
