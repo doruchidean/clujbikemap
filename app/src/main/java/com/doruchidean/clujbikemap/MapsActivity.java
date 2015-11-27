@@ -23,6 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.edmodo.rangebar.RangeBar;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -48,6 +50,15 @@ public class MapsActivity extends AppCompatActivity
 
     private int mColdLimit, mHotLimit;
     private final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit", SHARED_PREFS_NAME = "androidCjBike";
+    private int
+            overallBikes = 0,
+            overallSpots = 0,
+            overallTotal = 0;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +73,9 @@ public class MapsActivity extends AppCompatActivity
         mColdLimit = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE).getInt(COLD_LIMIT, 3);
         mHotLimit = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE).getInt(HOT_LIMIT, 3);
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
@@ -70,12 +84,12 @@ public class MapsActivity extends AppCompatActivity
 
         if (!hasGooglePlayServicesAvailable()) return;
 
-        if(!hasNetworkConnection()){
+        if (!hasNetworkConnection()) {
             askForInternetConnection();
             return;
         }
 
-        HttpHandler.getInstance().getStations(MapsActivity.this);
+        ApiClient.getInstance().getStations(MapsActivity.this);
 
         setUpMapIfNeeded();
 
@@ -84,7 +98,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
 
-    private void askForInternetConnection(){
+    private void askForInternetConnection() {
 
         AlertDialog dialog;
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
@@ -127,17 +141,16 @@ public class MapsActivity extends AppCompatActivity
         return haveConnectedWifi || haveConnectedMobile;
     }
 
-    private boolean hasGooglePlayServicesAvailable()
-    {
+    private boolean hasGooglePlayServicesAvailable() {
         return GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
 
     }
 
-    private void setCoordinatesOfUserLocation(){
+    private void setCoordinatesOfUserLocation() {
 
         Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-        if(lastLocation != null){
+        if (lastLocation != null) {
             //success getting userLatitude and userLongitude
             userLatitude = lastLocation.getLatitude();
             userLongitude = lastLocation.getLongitude();
@@ -148,7 +161,7 @@ public class MapsActivity extends AppCompatActivity
 
     protected synchronized void buildGoogleApiClient() {
 
-        if(mGoogleApiClient == null) {
+        if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
@@ -178,7 +191,7 @@ public class MapsActivity extends AppCompatActivity
 
         mMap.clear();
 
-        for(int i = 0; i < mStationsArray.size(); i++) {
+        for (int i = 0; i < mStationsArray.size(); i++) {
 
             StationsModel station = mStationsArray.get(i);
 
@@ -186,13 +199,13 @@ public class MapsActivity extends AppCompatActivity
             markerOptions.position(new LatLng(station.latitude, station.longitude));
             markerOptions.title(station.stationName);
 
-            if(station.ocuppiedSpots == 0){
+            if (station.ocuppiedSpots == 0) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_offline));
-            }else if(station.ocuppiedSpots < mColdLimit){
+            } else if (station.ocuppiedSpots < mColdLimit) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_underpopulated));
-            }else if(station.ocuppiedSpots < station.maximumNumberOfBikes - mHotLimit){
+            } else if (station.ocuppiedSpots < station.maximumNumberOfBikes - mHotLimit) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_online));
-            }else{
+            } else {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_overpopulated));
             }
 
@@ -208,7 +221,7 @@ public class MapsActivity extends AppCompatActivity
                 for (int i = 0; i < mStationsArray.size(); i++) {
                     if (marker.getTitle().equals(mStationsArray.get(i).stationName)) {
 
-                        View v = View.inflate(MapsActivity.this, R.layout.station_dialog, null);
+                        View v = View.inflate(MapsActivity.this, R.layout.dialog_station, null);
                         TextView tvName = (TextView) v.findViewById(R.id.tvDialogName);
                         TextView tvAddress = (TextView) v.findViewById(R.id.tvDialogAddress);
                         TextView tvEmptySpots = (TextView) v.findViewById(R.id.tvEmptySpots);
@@ -225,10 +238,10 @@ public class MapsActivity extends AppCompatActivity
                                 " custom is valid:" + s.customIsValid +
                                 " is valid:" + s.isValid +
                                 " station status:" + s.stationStatus +
-                                " last sync date:" + s.lastSyncDate+
-                                " id:"+s.id+
-                                " id status:"+s.idStatus+
-                                " maximum nr of bikes: "+ s.maximumNumberOfBikes);
+                                " last sync date:" + s.lastSyncDate +
+                                " id:" + s.id +
+                                " id status:" + s.idStatus +
+                                " maximum nr of bikes: " + s.maximumNumberOfBikes);
 
                         tvName.setText(s.stationName);
                         tvAddress.setText(s.address);
@@ -265,11 +278,11 @@ public class MapsActivity extends AppCompatActivity
 
         try {
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        if(!gps_enabled){
+        if (!gps_enabled) {
             AlertDialog dialog;
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -305,9 +318,9 @@ public class MapsActivity extends AppCompatActivity
 
         int id = item.getItemId();
 
-        switch (id){
+        switch (id) {
             case R.id.refresh_rate:
-                HttpHandler.getInstance().getStations(MapsActivity.this);
+                ApiClient.getInstance().getStations(MapsActivity.this);
                 break;
             case R.id.hot_cold_margins:
                 showMarginsDialog();
@@ -315,13 +328,42 @@ public class MapsActivity extends AppCompatActivity
             case R.id.contact:
                 showContactDialog();
                 break;
+            case R.id.overall_stats:
+                showOverallStatsDialog();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void showMarginsDialog(){
-        View dialogContainer = View.inflate(MapsActivity.this, R.layout.margings_dialog, null);
+    private void showOverallStatsDialog() {
+        View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_overall_stats, null);
+
+        final TextView tvBikes = (TextView) dialogContainer.findViewById(R.id.tv_overall_stats_bikes);
+        final TextView tvSpots = (TextView) dialogContainer.findViewById(R.id.tv_overall_stats_empty_spots);
+        final TextView tvTotal = (TextView) dialogContainer.findViewById(R.id.tv_overall_stats_total);
+
+        tvBikes.setText(String.format("Total Biciclete: %s", overallBikes));
+        tvSpots.setText(String.format("Total Locuri Libere: %s", overallSpots));
+        tvTotal.setText(String.format("Total Locuri: %s", overallTotal));
+
+        AlertDialog dialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+        builder.setTitle(getString(R.string.options_menu_overall_stats))
+                .setView(dialogContainer)
+                .setCancelable(true)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        dialog = builder.create();
+        dialog.show();
+    }
+
+    private void showMarginsDialog() {
+        View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_margings, null);
 
         final TextView tvColdMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_cold);
         final TextView tvHotMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_hot);
@@ -332,7 +374,7 @@ public class MapsActivity extends AppCompatActivity
         final byte hypotheticRange = 30;
 
         RangeBar rangeBar = (RangeBar) dialogContainer.findViewById(R.id.rangebar);
-        rangeBar.setTickCount(hypotheticRange+1); //todo test margins working correctly
+        rangeBar.setTickCount(hypotheticRange + 1); //todo test margins working correctly
         rangeBar.setThumbIndices(mColdLimit, hypotheticRange - mHotLimit);
         rangeBar.setConnectingLineColor(Color.GREEN);
         rangeBar.setThumbColorNormal(Color.GREEN);
@@ -373,9 +415,9 @@ public class MapsActivity extends AppCompatActivity
 
     }
 
-    private void showContactDialog(){
+    private void showContactDialog() {
 
-        View dialogContainer = View.inflate(MapsActivity.this, R.layout.contact_dialog, null);
+        View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_contact, null);
 
         TextView btnContactDev = (TextView) dialogContainer.findViewById(R.id.btn_contact_developer);
         TextView btnContactCallCenter = (TextView) dialogContainer.findViewById(R.id.btn_contact_call_center);
@@ -405,12 +447,12 @@ public class MapsActivity extends AppCompatActivity
         builder.setTitle(getString(R.string.options_menu_contact))
                 .setView(dialogContainer)
                 .setCancelable(true)
-        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
 
         dialog = builder.create();
         dialog.show();
@@ -431,6 +473,12 @@ public class MapsActivity extends AppCompatActivity
         this.mStationsArray = stationsArray;
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
         setUpMap();
+        for (StationsModel s : stationsArray) {
+            overallBikes += s.ocuppiedSpots;
+            overallSpots += s.emptySpots;
+            overallTotal += s.maximumNumberOfBikes;
+        }
+        Log.d("traces", overallBikes + "");
     }
 
     @Override
@@ -438,4 +486,43 @@ public class MapsActivity extends AppCompatActivity
         Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations) + error, Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.doruchidean.clujbikemap/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.doruchidean.clujbikemap/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
 }

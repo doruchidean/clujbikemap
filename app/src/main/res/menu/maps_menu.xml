@@ -11,4 +11,6 @@
         android:title="@string/options_menu_hot_cold_margins"/>
     <item android:id="@+id/contact"
         android:title="@string/options_menu_contact"/>
+    <item android:id="@+id/overall_stats"
+        android:title="@string/options_menu_overall_stats"/>
 </menu>

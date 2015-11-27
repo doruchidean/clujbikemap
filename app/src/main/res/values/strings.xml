@@ -11,5 +11,5 @@
     <string name="options_menu_refresh_rate">Refresh</string>
     <string name="dialog_margins_cold">Cold Margin: </string>
     <string name="dialog_margins_hot">Hot Margin: </string>
-
+    <string name="options_menu_overall_stats">Status General</string>
 </resources>

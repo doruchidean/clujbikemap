@@ -12,17 +12,17 @@ import org.json.JSONObject;
  * Created by Doru on 19/11/15.
  * This class handles all the server api calls
  */
-public class HttpHandler {
+public class ApiClient {
 
-    private static HttpHandler instance = new HttpHandler();
+    private static ApiClient instance = new ApiClient();
     private AsyncHttpClient mClient;
 
-    public HttpHandler(){
+    public ApiClient(){
 
         mClient = new AsyncHttpClient();
     }
 
-    public static HttpHandler getInstance(){
+    public static ApiClient getInstance(){
         return instance;
     }
 
