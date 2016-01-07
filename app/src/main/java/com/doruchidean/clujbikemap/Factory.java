@@ -1,7 +1,5 @@
 package com.doruchidean.clujbikemap;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,14 +10,14 @@ import java.util.ArrayList;
  * Created by Doru on 19/11/15.
  * This class creates models from server json response;
  */
-public class HttpResponseFactory {
-    private static HttpResponseFactory ourInstance = new HttpResponseFactory();
+public class Factory {
+    private static Factory ourInstance = new Factory();
 
-    public static HttpResponseFactory getInstance() {
+    public static Factory getInstance() {
         return ourInstance;
     }
 
-    private HttpResponseFactory() {
+    private Factory() {
     }
 
     public ArrayList<StationsModel> factorizeResponse(JSONObject response){

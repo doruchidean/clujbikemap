@@ -16,6 +16,11 @@ public class ApiClient {
 
     private static ApiClient instance = new ApiClient();
     private AsyncHttpClient mClient;
+    private String
+            baseUrl = "http://84.232.185.103",
+            login = "/logare", //todo vezi daca il poti folosi
+            getStations = "/Station/Read",
+            getCardDetails="/CTIInformation/ReadTransactionDetails/"; //todo vezi daca o mai lucrat baietii si functioneaza callu asta
 
     public ApiClient(){
 
@@ -30,11 +35,11 @@ public class ApiClient {
 
         Log.d("traces", "updating info");
 
-        mClient.post("http://84.232.185.103/Station/Read", new JsonHttpResponseHandler() {
+        mClient.post(baseUrl+getStations, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 
-                caller.onApiCallSuccess(HttpResponseFactory.getInstance().factorizeResponse(response));
+                caller.onApiCallSuccess(Factory.getInstance().factorizeResponse(response));
 
             }
 

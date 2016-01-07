@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Handler;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,11 +44,13 @@ import java.util.ArrayList;
 
 public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, ApiCallbacks {
+        GoogleApiClient.OnConnectionFailedListener, ApiCallbacks, View.OnClickListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
+
     private ArrayList<StationsModel> mStationsArray = new ArrayList<>();
-    GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mGoogleApiClient;
     private double userLatitude = 46.775627, userLongitude = 23.590935;
 
     private int mColdLimit, mHotLimit;
@@ -54,6 +59,8 @@ public class MapsActivity extends AppCompatActivity
             overallBikes = 0,
             overallSpots = 0,
             overallTotal = 0;
+
+    private ImageButton btnShowFavourites;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -64,6 +71,8 @@ public class MapsActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        PersistenceManager.getInstance().loadData(this);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -76,6 +85,11 @@ public class MapsActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
+        btnShowFavourites.setBackgroundResource(PersistenceManager.getInstance().getShowFavouritesOnly() ?
+                            R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
+
     }
 
     @Override
@@ -185,11 +199,8 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    private void setUpMap() {
-
+    private void createMarkers(){
         MarkerOptions markerOptions;
-
-        mMap.clear();
 
         for (int i = 0; i < mStationsArray.size(); i++) {
 
@@ -209,7 +220,22 @@ public class MapsActivity extends AppCompatActivity
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_overpopulated));
             }
 
-            mMap.addMarker(markerOptions);
+            mapMarkers.add(markerOptions);
+
+        }
+
+        if(PersistenceManager.getInstance().getShowFavouritesOnly()){
+            makeOnlyFavouriteMarkersVisible();
+        }
+
+    }
+
+    private void setUpMap() {
+
+        mMap.clear();
+
+        for(MarkerOptions m : mapMarkers){
+            mMap.addMarker(m);
         }
 
         mMap.setMyLocationEnabled(true);
@@ -227,27 +253,32 @@ public class MapsActivity extends AppCompatActivity
                         TextView tvEmptySpots = (TextView) v.findViewById(R.id.tvEmptySpots);
                         TextView tvOccupiedSpots = (TextView) v.findViewById(R.id.tvOcuppiedSpots);
                         TextView tvStatus = (TextView) v.findViewById(R.id.tvStatus);
+                        ImageView btnAddFav = (ImageView) v.findViewById(R.id.btn_add_favourite);
 
-                        StationsModel s = mStationsArray.get(i);
-
-                        Log.v("traces", " name:" + s.stationName +
-                                " address:" + s.address +
-                                " empty spots:" + s.emptySpots +
-                                " occupied spots:" + s.ocuppiedSpots +
-                                " status type:" + s.statusType +
-                                " custom is valid:" + s.customIsValid +
-                                " is valid:" + s.isValid +
-                                " station status:" + s.stationStatus +
-                                " last sync date:" + s.lastSyncDate +
-                                " id:" + s.id +
-                                " id status:" + s.idStatus +
-                                " maximum nr of bikes: " + s.maximumNumberOfBikes);
+                        final StationsModel s = mStationsArray.get(i);
 
                         tvName.setText(s.stationName);
                         tvAddress.setText(s.address);
                         tvEmptySpots.setText(String.format("Locuri libere: %s", s.emptySpots));
                         tvOccupiedSpots.setText(String.format("Biciclete disponibile: %s", s.ocuppiedSpots));
                         tvStatus.setText(String.format("Status: %s", s.statusType));
+                        btnAddFav.setBackgroundResource(s.isFavourite ? R.drawable.ic_favourite : R.drawable.ic_add_favourite);
+
+                        btnAddFav.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (s.isFavourite) {
+                                    v.setBackgroundResource(R.drawable.ic_add_favourite);
+                                    s.isFavourite = false;
+                                    PersistenceManager.getInstance().removeFavouriteStation(s.stationName);
+                                } else {
+                                    v.setBackgroundResource(R.drawable.ic_favourite);
+                                    s.isFavourite = true;
+                                    PersistenceManager.getInstance().addFavouriteStation(s.stationName);
+                                }
+
+                            }
+                        });
 
                         AlertDialog dialog;
                         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
@@ -472,11 +503,13 @@ public class MapsActivity extends AppCompatActivity
     public void onApiCallSuccess(ArrayList<StationsModel> stationsArray) {
         this.mStationsArray = stationsArray;
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
+        createMarkers();
         setUpMap();
-        for (StationsModel s : stationsArray) {
+        for (StationsModel s : mStationsArray) {
             overallBikes += s.ocuppiedSpots;
             overallSpots += s.emptySpots;
             overallTotal += s.maximumNumberOfBikes;
+            s.isFavourite = PersistenceManager.getInstance().isFavourite(s.stationName);
         }
         Log.d("traces", overallBikes + "");
     }
@@ -524,5 +557,68 @@ public class MapsActivity extends AppCompatActivity
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()){
+            case(R.id.btn_show_favourites):
+
+                if(PersistenceManager.getInstance().getShowFavouritesOnly()){
+                    btnShowFavourites.setBackgroundResource(R.drawable.ic_favourites_pressed);
+                    PersistenceManager.getInstance().setShowFavouritesOnly(false);
+                    for(MarkerOptions m : mapMarkers){
+                        m.visible(true);
+                    }
+                }else{
+                    btnShowFavourites.setBackgroundResource(R.drawable.ic_favourite);
+                    PersistenceManager.getInstance().setShowFavouritesOnly(true);
+                    makeOnlyFavouriteMarkersVisible();
+                }
+
+                setUpMap();
+            break;
+        }
+    }
+
+    private void makeOnlyFavouriteMarkersVisible(){
+        for(MarkerOptions m : mapMarkers){
+            for(StationsModel s : mStationsArray){
+                if(m.getTitle().equalsIgnoreCase(s.stationName)){
+                    m.visible(PersistenceManager.getInstance().isFavourite(s.stationName));
+                    break;
+                }
+            }
+        }
+    }
+
+    int backPressedCount = 0;
+
+    @Override
+    public void onBackPressed() {
+
+        backPressedCount ++;
+        if(backPressedCount == 2){
+            super.onBackPressed();
+            return;
+        }
+        Handler h = new Handler();
+        h.postDelayed(
+                new Runnable(){
+                    @Override
+                    public void run() {
+                        backPressedCount = 0;
+                    }
+                },
+                3500
+        );
+
+        Toast.makeText(this, getString(R.string.confirm_exit_application)+" " +getString(R.string.app_name), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        PersistenceManager.getInstance().saveData(this);
+        super.onDestroy();
     }
 }
