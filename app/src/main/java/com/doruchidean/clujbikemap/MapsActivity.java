@@ -41,6 +41,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
@@ -55,10 +56,7 @@ public class MapsActivity extends AppCompatActivity
 
     private int mColdLimit, mHotLimit;
     private final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit", SHARED_PREFS_NAME = "androidCjBike";
-    private int
-            overallBikes = 0,
-            overallSpots = 0,
-            overallTotal = 0;
+    private int overallBikes = 0, overallSpots = 0, overallTotal = 0;
 
     private ImageButton btnShowFavourites;
     /**
@@ -225,7 +223,7 @@ public class MapsActivity extends AppCompatActivity
         }
 
         if(PersistenceManager.getInstance().getShowFavouritesOnly()){
-            makeOnlyFavouriteMarkersVisible();
+            hideNonFavouriteMarkers();
         }
 
     }
@@ -242,69 +240,110 @@ public class MapsActivity extends AppCompatActivity
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public boolean onMarkerClick(final Marker marker) {
+            public boolean onMarkerClick(Marker marker) {
 
-                for (int i = 0; i < mStationsArray.size(); i++) {
-                    if (marker.getTitle().equals(mStationsArray.get(i).stationName)) {
-
-                        View v = View.inflate(MapsActivity.this, R.layout.dialog_station, null);
-                        TextView tvName = (TextView) v.findViewById(R.id.tvDialogName);
-                        TextView tvAddress = (TextView) v.findViewById(R.id.tvDialogAddress);
-                        TextView tvEmptySpots = (TextView) v.findViewById(R.id.tvEmptySpots);
-                        TextView tvOccupiedSpots = (TextView) v.findViewById(R.id.tvOcuppiedSpots);
-                        TextView tvStatus = (TextView) v.findViewById(R.id.tvStatus);
-                        ImageView btnAddFav = (ImageView) v.findViewById(R.id.btn_add_favourite);
-
-                        final StationsModel s = mStationsArray.get(i);
-
-                        tvName.setText(s.stationName);
-                        tvAddress.setText(s.address);
-                        tvEmptySpots.setText(String.format("Locuri libere: %s", s.emptySpots));
-                        tvOccupiedSpots.setText(String.format("Biciclete disponibile: %s", s.ocuppiedSpots));
-                        tvStatus.setText(String.format("Status: %s", s.statusType));
-                        btnAddFav.setBackgroundResource(s.isFavourite ? R.drawable.ic_favourite : R.drawable.ic_add_favourite);
-
-                        btnAddFav.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (s.isFavourite) {
-                                    v.setBackgroundResource(R.drawable.ic_add_favourite);
-                                    s.isFavourite = false;
-                                    PersistenceManager.getInstance().removeFavouriteStation(s.stationName);
-                                    marker.setVisible(false);
-                                } else {
-                                    v.setBackgroundResource(R.drawable.ic_favourite);
-                                    s.isFavourite = true;
-                                    PersistenceManager.getInstance().addFavouriteStation(s.stationName);
-                                }
-
-                            }
-                        });
-
-                        AlertDialog dialog;
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                                .setCancelable(true)
-                                .setView(v);
-                        dialog = builder.create();
-                        dialog.show();
-                        break;
-                    }
-                }
+                onMarkerClickFunction(marker);
 
                 return false;
             }
         });
     }
 
+    private StationsModel binarySearchStation(String markerTitleToFind){
+
+        int lowEnd = 0;
+        int highEnd = mStationsArray.size()-1;
+        int middle, compare;
+
+        while (lowEnd <= highEnd){
+            middle = (lowEnd+highEnd)/2;
+
+            compare = markerTitleToFind.compareToIgnoreCase(mStationsArray.get(middle).stationName);
+
+            if(compare < 0){
+                highEnd = middle-1;
+            }else if(compare > 0){
+                lowEnd = middle +1;
+            }else{
+               return mStationsArray.get(middle);
+            }
+
+        }
+
+        return null;
+    }
+
+    View stationDialog;
+    TextView stationDialogName, stationDialogAddress, stationDialogEmptySpots,
+            stationDialogOccupiedSpots, stationDialogStatus;
+    ImageView stationDialogFavouriteButton;
+    private void onMarkerClickFunction(final Marker marker){
+
+        final StationsModel station = binarySearchStation(marker.getTitle());
+
+        if(station == null){
+            return;
+        }
+
+        stationDialog = View.inflate(MapsActivity.this, R.layout.dialog_station, null);
+        stationDialogName = (TextView) stationDialog.findViewById(R.id.tvDialogName);
+        stationDialogAddress = (TextView) stationDialog.findViewById(R.id.tvDialogAddress);
+        stationDialogEmptySpots = (TextView) stationDialog.findViewById(R.id.tvEmptySpots);
+        stationDialogOccupiedSpots = (TextView) stationDialog.findViewById(R.id.tvOcuppiedSpots);
+        stationDialogStatus = (TextView) stationDialog.findViewById(R.id.tvStatus);
+        stationDialogFavouriteButton = (ImageView) stationDialog.findViewById(R.id.btn_add_favourite);
+
+        stationDialogName.setText(station.stationName);
+        stationDialogAddress.setText(station.address);
+        stationDialogEmptySpots.setText(String.format("Locuri libere: %s", station.emptySpots));
+        stationDialogOccupiedSpots.setText(String.format("Biciclete disponibile: %s", station.ocuppiedSpots));
+        stationDialogStatus.setText(String.format("Status: %s", station.statusType));
+        stationDialogFavouriteButton.setBackgroundResource(station.isFavourite ? R.drawable.ic_favourite : R.drawable.ic_add_favourite);
+
+        stationDialogFavouriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (station.isFavourite) {
+                    v.setBackgroundResource(R.drawable.ic_add_favourite);
+                    station.isFavourite = false;
+                    PersistenceManager.getInstance().removeFavouriteStation(station.stationName);
+                    marker.setVisible(false);
+                } else {
+                    v.setBackgroundResource(R.drawable.ic_favourite);
+                    station.isFavourite = true;
+                    PersistenceManager.getInstance().addFavouriteStation(station.stationName);
+                }
+
+            }
+        });
+
+        AlertDialog dialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        })
+                .setCancelable(true)
+                .setView(stationDialog);
+        dialog = builder.create();
+        dialog.show();
+    }
+
+    private void hideNonFavouriteMarkers(){
+        StationsModel matchingStation;
+        for(MarkerOptions m : mapMarkers){
+            matchingStation = binarySearchStation(m.getTitle());
+            if(matchingStation != null) {
+                m.visible(PersistenceManager.getInstance().isFavourite(matchingStation.stationName));
+            }
+        }
+    }
+
     @Override
     public void onConnected(Bundle bundle) {
-        //        check if location services is turned on
+        //check if location services is turned on
         LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
 
@@ -503,6 +542,8 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onApiCallSuccess(ArrayList<StationsModel> stationsArray) {
         this.mStationsArray = stationsArray;
+        Collections.sort(this.mStationsArray);
+
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
         createMarkers();
         setUpMap();
@@ -573,7 +614,7 @@ public class MapsActivity extends AppCompatActivity
                 }else{
                     btnShowFavourites.setBackgroundResource(R.drawable.ic_favourite);
                     PersistenceManager.getInstance().setShowFavouritesOnly(true);
-                    makeOnlyFavouriteMarkersVisible();
+                    hideNonFavouriteMarkers();
                 }
 
                 setUpMap();
@@ -581,19 +622,7 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    private void makeOnlyFavouriteMarkersVisible(){
-        for(MarkerOptions m : mapMarkers){
-            for(StationsModel s : mStationsArray){
-                if(m.getTitle().equalsIgnoreCase(s.stationName)){
-                    m.visible(PersistenceManager.getInstance().isFavourite(s.stationName));
-                    break;
-                }
-            }
-        }
-    }
-
     int backPressedCount = 0;
-
     @Override
     public void onBackPressed() {
 
@@ -604,13 +633,13 @@ public class MapsActivity extends AppCompatActivity
         }
         Handler h = new Handler();
         h.postDelayed(
-                new Runnable(){
-                    @Override
-                    public void run() {
-                        backPressedCount = 0;
-                    }
-                },
-                3500
+            new Runnable(){
+                @Override
+                public void run() {
+                    backPressedCount = 0;
+                }
+            },
+            3500
         );
 
         Toast.makeText(this, getString(R.string.confirm_exit_application)+" " +getString(R.string.app_name), Toast.LENGTH_SHORT).show();
@@ -620,5 +649,9 @@ public class MapsActivity extends AppCompatActivity
     protected void onDestroy() {
         PersistenceManager.getInstance().saveData(this);
         super.onDestroy();
+    }
+
+    public static void trace(String s){
+        Log.d("traces", s);
     }
 }
