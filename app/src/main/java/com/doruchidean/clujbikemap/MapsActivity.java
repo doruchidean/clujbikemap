@@ -242,7 +242,7 @@ public class MapsActivity extends AppCompatActivity
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public boolean onMarkerClick(Marker marker) {
+            public boolean onMarkerClick(final Marker marker) {
 
                 for (int i = 0; i < mStationsArray.size(); i++) {
                     if (marker.getTitle().equals(mStationsArray.get(i).stationName)) {
@@ -271,6 +271,7 @@ public class MapsActivity extends AppCompatActivity
                                     v.setBackgroundResource(R.drawable.ic_add_favourite);
                                     s.isFavourite = false;
                                     PersistenceManager.getInstance().removeFavouriteStation(s.stationName);
+                                    marker.setVisible(false);
                                 } else {
                                     v.setBackgroundResource(R.drawable.ic_favourite);
                                     s.isFavourite = true;
@@ -511,7 +512,6 @@ public class MapsActivity extends AppCompatActivity
             overallTotal += s.maximumNumberOfBikes;
             s.isFavourite = PersistenceManager.getInstance().isFavourite(s.stationName);
         }
-        Log.d("traces", overallBikes + "");
     }
 
     @Override

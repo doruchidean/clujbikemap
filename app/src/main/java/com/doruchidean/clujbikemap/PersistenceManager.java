@@ -3,7 +3,6 @@ package com.doruchidean.clujbikemap;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,8 +13,6 @@ import java.util.Collections;
  * Needs to be initialized once per app, with a context passed, before usage
  */
 public class PersistenceManager {
-
-    String LOGTAG = "traces";
 
     private static PersistenceManager mInstance;
 
@@ -54,15 +51,9 @@ public class PersistenceManager {
 
     public void addFavouriteStation(String stationName){
         favouriteStations.add(stationName);
-        for(int i = 0; i<favouriteStations.size(); i++){
-            Log.d(LOGTAG, favouriteStations.get(i));
-        }
     }
     public void removeFavouriteStation(String stationName){
         favouriteStations.remove(stationName);
-        for(int i = 0; i<favouriteStations.size(); i++){
-            Log.d(LOGTAG, favouriteStations.get(i));
-        }
     }
 
     public void saveData(Context context){
