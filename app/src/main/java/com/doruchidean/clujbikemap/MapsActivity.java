@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
+
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -26,8 +26,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.edmodo.rangebar.RangeBar;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -54,16 +52,9 @@ public class MapsActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private double userLatitude = 46.775627, userLongitude = 23.590935;
 
-    private int mColdLimit, mHotLimit;
-    private final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit", SHARED_PREFS_NAME = "androidCjBike";
     private int overallBikes = 0, overallSpots = 0, overallTotal = 0;
 
     private ImageButton btnShowFavourites;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,13 +67,6 @@ public class MapsActivity extends AppCompatActivity
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_maps);
-
-        mColdLimit = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE).getInt(COLD_LIMIT, 3);
-        mHotLimit = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE).getInt(HOT_LIMIT, 3);
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
         btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
         btnShowFavourites.setBackgroundResource(PersistenceManager.getInstance().getShowFavouritesOnly() ?
@@ -199,6 +183,7 @@ public class MapsActivity extends AppCompatActivity
 
     private void createMarkers(){
         MarkerOptions markerOptions;
+        PersistenceManager values = PersistenceManager.getInstance();
 
         for (int i = 0; i < mStationsArray.size(); i++) {
 
@@ -210,9 +195,9 @@ public class MapsActivity extends AppCompatActivity
 
             if (station.ocuppiedSpots == 0) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_offline));
-            } else if (station.ocuppiedSpots < mColdLimit) {
+            } else if (station.ocuppiedSpots < values.getColdLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_underpopulated));
-            } else if (station.ocuppiedSpots < station.maximumNumberOfBikes - mHotLimit) {
+            } else if (station.ocuppiedSpots < station.maximumNumberOfBikes - values.getHotLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_online));
             } else {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_overpopulated));
@@ -434,6 +419,12 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void showMarginsDialog() {
+
+        final PersistenceManager values = PersistenceManager.getInstance();
+
+        final int mColdLimit = values.getColdLimit();
+        final int mHotLimit = values.getHotLimit();
+
         View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_margings, null);
 
         final TextView tvColdMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_cold);
@@ -454,11 +445,11 @@ public class MapsActivity extends AppCompatActivity
         rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
             @Override
             public void onIndexChangeListener(RangeBar rangeBar, int i, int i1) {
-                mColdLimit = i;
-                mHotLimit = hypotheticRange - i1;
+                values.setColdLimit(i);
+                values.setHotLimit(hypotheticRange - i1);
 
-                tvColdMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_cold), mColdLimit));
-                tvHotMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_hot), mHotLimit));
+                tvColdMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_cold), i));
+                tvHotMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_hot), hypotheticRange-i1));
             }
         });
 
@@ -470,11 +461,6 @@ public class MapsActivity extends AppCompatActivity
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
-                        SharedPreferences.Editor e = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE).edit();
-                        e.putInt(COLD_LIMIT, mColdLimit);
-                        e.putInt(HOT_LIMIT, mHotLimit);
-                        e.apply();
 
                         setUpMap();
 
@@ -561,46 +547,6 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Maps Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.doruchidean.clujbikemap/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Maps Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.doruchidean.clujbikemap/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
-    }
-
-    @Override
     public void onClick(View v) {
         switch(v.getId()){
             case(R.id.btn_show_favourites):
@@ -612,9 +558,13 @@ public class MapsActivity extends AppCompatActivity
                         m.visible(true);
                     }
                 }else{
-                    btnShowFavourites.setBackgroundResource(R.drawable.ic_favourite);
-                    PersistenceManager.getInstance().setShowFavouritesOnly(true);
-                    hideNonFavouriteMarkers();
+                    if (PersistenceManager.getInstance().getFavouriteStations().size() > 0) {
+                        btnShowFavourites.setBackgroundResource(R.drawable.ic_favourite);
+                        PersistenceManager.getInstance().setShowFavouritesOnly(true);
+                        hideNonFavouriteMarkers();
+                    } else {
+                        Toast.makeText(MapsActivity.this, getString(R.string.toast_no_favourites), Toast.LENGTH_LONG).show();
+                    }
                 }
 
                 setUpMap();

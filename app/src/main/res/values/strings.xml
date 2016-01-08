@@ -13,4 +13,5 @@
     <string name="dialog_margins_hot">Hot Margin: </string>
     <string name="options_menu_overall_stats">Status General</string>
     <string name="confirm_exit_application">Press BACK again to exit </string>
+    <string name="toast_no_favourites">You have not marked any station as favourite.</string>
 </resources>

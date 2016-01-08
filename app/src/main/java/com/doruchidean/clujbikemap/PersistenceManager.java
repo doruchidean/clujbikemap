@@ -16,12 +16,15 @@ public class PersistenceManager {
 
     private static PersistenceManager mInstance;
 
+    //constant keys
     private static final String FAVOURITE_STATIONS = "favouritesStations";
     private static final String SHOWS_FAVOURITES_ONLY = "showFavourites";
+    private static final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit";
 
+    //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
-
     private boolean showFavouritesOnly = false;
+    private int mColdLimit, mHotLimit;
 
     private PersistenceManager(){
     }
@@ -34,10 +37,14 @@ public class PersistenceManager {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 
         String raw = sp.getString(FAVOURITE_STATIONS, "");
-        String[] rawList = raw.split(",");
-
-        Collections.addAll(favouriteStations, rawList);
+        String[] rawList;
+        if (raw.length() > 0) {
+            rawList = raw.split(",");
+            Collections.addAll(favouriteStations, rawList);
+        }
         showFavouritesOnly = sp.getBoolean(SHOWS_FAVOURITES_ONLY, false);
+        mColdLimit = sp.getInt(COLD_LIMIT, 3);
+        mHotLimit = sp.getInt(HOT_LIMIT, 3);
 
     }
 
@@ -55,6 +62,9 @@ public class PersistenceManager {
     public void removeFavouriteStation(String stationName){
         favouriteStations.remove(stationName);
     }
+    public ArrayList<String> getFavouriteStations() {
+        return favouriteStations;
+    }
 
     public void saveData(Context context){
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
@@ -67,6 +77,8 @@ public class PersistenceManager {
 
         editor.putString(FAVOURITE_STATIONS, fakeJson);
         editor.putBoolean(SHOWS_FAVOURITES_ONLY, showFavouritesOnly);
+        editor.putInt(COLD_LIMIT, mColdLimit);
+        editor.putInt(HOT_LIMIT, mHotLimit);
 
         editor.apply();
     }
@@ -85,5 +97,21 @@ public class PersistenceManager {
     }
     public boolean getShowFavouritesOnly() {
         return showFavouritesOnly;
+    }
+
+    public int getHotLimit() {
+        return mHotLimit;
+    }
+
+    public void setHotLimit(int mHotLimit) {
+        this.mHotLimit = mHotLimit;
+    }
+
+    public int getColdLimit() {
+        return mColdLimit;
+    }
+
+    public void setColdLimit(int mColdLimit) {
+        this.mColdLimit = mColdLimit;
     }
 }
