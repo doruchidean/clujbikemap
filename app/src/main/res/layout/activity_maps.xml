@@ -16,6 +16,16 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_marginRight="56dp"
+        android:layout_marginEnd="56dp"
+        android:layout_marginTop="5dp"/>
+
+    <ImageButton android:id="@+id/btn_timer"
+        android:onClick="onClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_timer"
+        android:layout_toLeftOf="@id/btn_show_favourites"
+        android:layout_toStartOf="@id/btn_show_favourites"
         android:layout_marginTop="5dp"/>
 
 </RelativeLayout>

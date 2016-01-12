@@ -14,4 +14,7 @@
     <string name="options_menu_overall_stats">Status General</string>
     <string name="confirm_exit_application">Press BACK again to exit </string>
     <string name="toast_no_favourites">You have not marked any station as favourite.</string>
+    <string name="alarm_on">Countdown STARTED!</string>
+    <string name="alarm_off">Countdown CANCELED!</string>
+    <string name="notification_text">Countdown ended</string>
 </resources>

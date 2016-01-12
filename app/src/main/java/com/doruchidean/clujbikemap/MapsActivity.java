@@ -1,6 +1,8 @@
 package com.doruchidean.clujbikemap;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +14,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -54,7 +57,13 @@ public class MapsActivity extends AppCompatActivity
 
     private int overallBikes = 0, overallSpots = 0, overallTotal = 0;
 
-    private ImageButton btnShowFavourites;
+    private ImageButton btnShowFavourites, btnTimer;
+    private View stationDialog;
+    private TextView stationDialogName, stationDialogAddress, stationDialogEmptySpots,
+            stationDialogOccupiedSpots, stationDialogStatus;
+    private ImageView stationDialogFavouriteButton;
+    private AlarmManager alarmManager;
+    private PendingIntent alarmPendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +78,9 @@ public class MapsActivity extends AppCompatActivity
         setContentView(R.layout.activity_maps);
 
         btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
+        btnTimer = (ImageButton) findViewById(R.id.btn_timer);
         btnShowFavourites.setBackgroundResource(PersistenceManager.getInstance().getShowFavouritesOnly() ?
-                            R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
+                R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
 
     }
 
@@ -258,10 +268,6 @@ public class MapsActivity extends AppCompatActivity
         return null;
     }
 
-    View stationDialog;
-    TextView stationDialogName, stationDialogAddress, stationDialogEmptySpots,
-            stationDialogOccupiedSpots, stationDialogStatus;
-    ImageView stationDialogFavouriteButton;
     private void onMarkerClickFunction(final Marker marker){
 
         final StationsModel station = binarySearchStation(marker.getTitle());
@@ -568,7 +574,32 @@ public class MapsActivity extends AppCompatActivity
                 }
 
                 setUpMap();
-            break;
+                break;
+            case (R.id.btn_timer):
+
+                if (!btnTimer.isSelected()) {
+                    alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                    long alarmTime = SystemClock.elapsedRealtime() + PersistenceManager.getInstance().getTimerMinutes() * 1000;
+                    Intent notificationHandlerIntent = new Intent(this, NotificationHandler.class);
+                    alarmPendingIntent = PendingIntent.getBroadcast(this, RESULT_OK, notificationHandlerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, alarmTime, alarmPendingIntent);
+
+                    btnTimer.setBackgroundResource(R.drawable.ic_timer_pressed);
+                    btnTimer.setSelected(true);
+
+                    Toast.makeText(MapsActivity.this, getString(R.string.alarm_on), Toast.LENGTH_SHORT).show();
+                }else{
+                    alarmManager.cancel(alarmPendingIntent);
+                    alarmManager = null;
+                    alarmPendingIntent = null;
+
+                    btnTimer.setBackgroundResource(R.drawable.ic_timer);
+                    btnTimer.setSelected(false);
+
+                    Toast.makeText(MapsActivity.this, getString(R.string.alarm_off), Toast.LENGTH_SHORT).show();
+                }
+
+                break;
         }
     }
 

@@ -19,12 +19,12 @@ public class PersistenceManager {
     //constant keys
     private static final String FAVOURITE_STATIONS = "favouritesStations";
     private static final String SHOWS_FAVOURITES_ONLY = "showFavourites";
-    private static final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit";
+    private static final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit", TIMER_MINUTES="timermin";
 
     //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
     private boolean showFavouritesOnly = false;
-    private int mColdLimit, mHotLimit;
+    private int mColdLimit, mHotLimit, mTimerMinutes;
 
     private PersistenceManager(){
     }
@@ -45,7 +45,26 @@ public class PersistenceManager {
         showFavouritesOnly = sp.getBoolean(SHOWS_FAVOURITES_ONLY, false);
         mColdLimit = sp.getInt(COLD_LIMIT, 3);
         mHotLimit = sp.getInt(HOT_LIMIT, 3);
+        mTimerMinutes = sp.getInt(TIMER_MINUTES, 1);
 
+    }
+
+    public void saveData(Context context){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sp.edit();
+
+        String fakeJson = null;
+        for(int i = 0; i<favouriteStations.size(); i++){
+            fakeJson = fakeJson + "," + favouriteStations.get(i);
+        }
+
+        editor.putString(FAVOURITE_STATIONS, fakeJson);
+        editor.putBoolean(SHOWS_FAVOURITES_ONLY, showFavouritesOnly);
+        editor.putInt(COLD_LIMIT, mColdLimit);
+        editor.putInt(HOT_LIMIT, mHotLimit);
+        editor.putInt(TIMER_MINUTES, mTimerMinutes);
+
+        editor.apply();
     }
 
     public static PersistenceManager getInstance(){
@@ -66,23 +85,6 @@ public class PersistenceManager {
         return favouriteStations;
     }
 
-    public void saveData(Context context){
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = sp.edit();
-
-        String fakeJson = null;
-        for(int i = 0; i<favouriteStations.size(); i++){
-            fakeJson = fakeJson + "," + favouriteStations.get(i);
-        }
-
-        editor.putString(FAVOURITE_STATIONS, fakeJson);
-        editor.putBoolean(SHOWS_FAVOURITES_ONLY, showFavouritesOnly);
-        editor.putInt(COLD_LIMIT, mColdLimit);
-        editor.putInt(HOT_LIMIT, mHotLimit);
-
-        editor.apply();
-    }
-
     public boolean isFavourite(String stationName){
 
         for(String s:favouriteStations){
@@ -95,6 +97,15 @@ public class PersistenceManager {
     public void setShowFavouritesOnly(boolean showFavouritesOnly) {
         this.showFavouritesOnly = showFavouritesOnly;
     }
+
+    public int getTimerMinutes() {
+        return mTimerMinutes*60;
+    }
+
+    public void setTimerMinutes(int mTimerMinutes) {
+        this.mTimerMinutes = mTimerMinutes;
+    }
+
     public boolean getShowFavouritesOnly() {
         return showFavouritesOnly;
     }
