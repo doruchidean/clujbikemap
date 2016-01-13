@@ -17,14 +17,25 @@ public class PersistenceManager {
     private static PersistenceManager mInstance;
 
     //constant keys
-    private static final String FAVOURITE_STATIONS = "favouritesStations";
-    private static final String SHOWS_FAVOURITES_ONLY = "showFavourites";
-    private static final String COLD_LIMIT = "coldlimit", HOT_LIMIT = "hotlimit", TIMER_MINUTES="timermin";
+    private static final String
+            FAVOURITE_STATIONS = "favouritesStations",
+            SHOWS_FAVOURITES_ONLY = "showFavourites",
+            COLD_LIMIT = "coldlimit",
+            HOT_LIMIT = "hotlimit",
+            TIMER_MINUTES="timermin",
+            IS_COUNTING_DOWN = "iscounting";
 
     //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
-    private boolean showFavouritesOnly = false;
-    private int mColdLimit, mHotLimit, mTimerMinutes;
+
+    private boolean
+            showFavouritesOnly,
+            mIsCountingDown;
+
+    private int
+            mColdLimit,
+            mHotLimit,
+            mTimerMinutes;
 
     private PersistenceManager(){
     }
@@ -43,9 +54,10 @@ public class PersistenceManager {
             Collections.addAll(favouriteStations, rawList);
         }
         showFavouritesOnly = sp.getBoolean(SHOWS_FAVOURITES_ONLY, false);
+        mIsCountingDown = sp.getBoolean(IS_COUNTING_DOWN, false);
         mColdLimit = sp.getInt(COLD_LIMIT, 3);
         mHotLimit = sp.getInt(HOT_LIMIT, 3);
-        mTimerMinutes = sp.getInt(TIMER_MINUTES, 1);
+        mTimerMinutes = sp.getInt(TIMER_MINUTES, 69); //todo update default value to 45 after testing
 
     }
 
@@ -63,6 +75,7 @@ public class PersistenceManager {
         editor.putInt(COLD_LIMIT, mColdLimit);
         editor.putInt(HOT_LIMIT, mHotLimit);
         editor.putInt(TIMER_MINUTES, mTimerMinutes);
+        editor.putBoolean(IS_COUNTING_DOWN, mIsCountingDown);
 
         editor.apply();
     }
@@ -99,7 +112,7 @@ public class PersistenceManager {
     }
 
     public int getTimerMinutes() {
-        return mTimerMinutes*60;
+        return mTimerMinutes;
     }
 
     public void setTimerMinutes(int mTimerMinutes) {
@@ -124,5 +137,12 @@ public class PersistenceManager {
 
     public void setColdLimit(int mColdLimit) {
         this.mColdLimit = mColdLimit;
+    }
+
+    public void setIsCountingDown(boolean isCountingDown){
+        mIsCountingDown = isCountingDown;
+    }
+    public boolean getIsCountingDown(){
+        return mIsCountingDown;
     }
 }

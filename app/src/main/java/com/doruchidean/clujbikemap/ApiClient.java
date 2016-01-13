@@ -31,7 +31,7 @@ public class ApiClient {
         return instance;
     }
 
-    public void getStations(final ApiCallbacks caller){
+    public void getStations(final Callbacks.ApiCallbacks caller){
 
         Log.d("traces", "updating info");
 

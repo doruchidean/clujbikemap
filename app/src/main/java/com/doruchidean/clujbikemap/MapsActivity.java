@@ -7,12 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -28,7 +26,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.edmodo.rangebar.RangeBar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -46,7 +43,7 @@ import java.util.Collections;
 
 public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, ApiCallbacks, View.OnClickListener {
+        GoogleApiClient.OnConnectionFailedListener, Callbacks.ApiCallbacks, Callbacks.SettingsDialogsCallback, View.OnClickListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
@@ -79,8 +76,6 @@ public class MapsActivity extends AppCompatActivity
 
         btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
         btnTimer = (ImageButton) findViewById(R.id.btn_timer);
-        btnShowFavourites.setBackgroundResource(PersistenceManager.getInstance().getShowFavouritesOnly() ?
-                R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
 
     }
 
@@ -101,8 +96,15 @@ public class MapsActivity extends AppCompatActivity
 
         buildGoogleApiClient();
 
+        refreshUIButtons();
     }
 
+    private void refreshUIButtons(){
+        btnShowFavourites.setBackgroundResource(PersistenceManager.getInstance().getShowFavouritesOnly() ?
+                R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
+        btnTimer.setBackgroundResource(PersistenceManager.getInstance().getIsCountingDown() ?
+                R.drawable.ic_timer_pressed : R.drawable.ic_timer);
+    }
 
     private void askForInternetConnection() {
 
@@ -223,7 +225,8 @@ public class MapsActivity extends AppCompatActivity
 
     }
 
-    private void setUpMap() {
+    @Override
+    public void setUpMap() {
 
         mMap.clear();
 
@@ -385,140 +388,20 @@ public class MapsActivity extends AppCompatActivity
                 ApiClient.getInstance().getStations(MapsActivity.this);
                 break;
             case R.id.hot_cold_margins:
-                showMarginsDialog();
+                SettingsDialogs.getInstance().showMarginsDialog(MapsActivity.this, this);
                 break;
             case R.id.contact:
-                showContactDialog();
+                SettingsDialogs.getInstance().showContactDialog(MapsActivity.this);
                 break;
             case R.id.overall_stats:
-                showOverallStatsDialog();
+                SettingsDialogs.getInstance().showOverallStatsDialog(this);
+                break;
+            case R.id.timer_limit:
+                SettingsDialogs.getInstance().showTimerLimitDialog(this);
                 break;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void showOverallStatsDialog() {
-        View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_overall_stats, null);
-
-        final TextView tvBikes = (TextView) dialogContainer.findViewById(R.id.tv_overall_stats_bikes);
-        final TextView tvSpots = (TextView) dialogContainer.findViewById(R.id.tv_overall_stats_empty_spots);
-        final TextView tvTotal = (TextView) dialogContainer.findViewById(R.id.tv_overall_stats_total);
-
-        tvBikes.setText(String.format("Total Biciclete: %s", overallBikes));
-        tvSpots.setText(String.format("Total Locuri Libere: %s", overallSpots));
-        tvTotal.setText(String.format("Total Locuri: %s", overallTotal));
-
-        AlertDialog dialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-        builder.setTitle(getString(R.string.options_menu_overall_stats))
-                .setView(dialogContainer)
-                .setCancelable(true)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        dialog = builder.create();
-        dialog.show();
-    }
-
-    private void showMarginsDialog() {
-
-        final PersistenceManager values = PersistenceManager.getInstance();
-
-        final int mColdLimit = values.getColdLimit();
-        final int mHotLimit = values.getHotLimit();
-
-        View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_margings, null);
-
-        final TextView tvColdMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_cold);
-        final TextView tvHotMargin = (TextView) dialogContainer.findViewById(R.id.tv_dialog_margins_hot);
-
-        tvColdMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_cold), mColdLimit));
-        tvHotMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_hot), mHotLimit));
-
-        final byte hypotheticRange = 30;
-
-        RangeBar rangeBar = (RangeBar) dialogContainer.findViewById(R.id.rangebar);
-        rangeBar.setTickCount(hypotheticRange + 1); //todo test margins working correctly
-        rangeBar.setThumbIndices(mColdLimit, hypotheticRange - mHotLimit);
-        rangeBar.setConnectingLineColor(Color.GREEN);
-        rangeBar.setThumbColorNormal(Color.GREEN);
-        rangeBar.setThumbColorPressed(Color.RED);
-        rangeBar.setBackgroundResource(R.drawable.background_rangebar);
-        rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
-            @Override
-            public void onIndexChangeListener(RangeBar rangeBar, int i, int i1) {
-                values.setColdLimit(i);
-                values.setHotLimit(hypotheticRange - i1);
-
-                tvColdMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_cold), i));
-                tvHotMargin.setText(String.format("%s %s", getString(R.string.dialog_margins_hot), hypotheticRange-i1));
-            }
-        });
-
-        AlertDialog dialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-        builder.setTitle(getString(R.string.options_menu_hot_cold_margins))
-                .setView(dialogContainer)
-                .setCancelable(true)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        setUpMap();
-
-                        dialog.dismiss();
-                    }
-                });
-        dialog = builder.create();
-        dialog.show();
-
-    }
-
-    private void showContactDialog() {
-
-        View dialogContainer = View.inflate(MapsActivity.this, R.layout.dialog_contact, null);
-
-        TextView btnContactDev = (TextView) dialogContainer.findViewById(R.id.btn_contact_developer);
-        TextView btnContactCallCenter = (TextView) dialogContainer.findViewById(R.id.btn_contact_call_center);
-
-        btnContactDev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-                emailIntent.setData(Uri.parse("mailto:"));
-                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "ClujBike Map - android support");
-                emailIntent.putExtra(Intent.EXTRA_TEXT, "Hello, \n\n");
-                emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"doru.chidean@gmai.com"});
-                startActivity(Intent.createChooser(emailIntent, "Send email..."));
-            }
-        });
-        btnContactCallCenter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent callIntent = new Intent(Intent.ACTION_DIAL);
-                callIntent.setData(Uri.parse("tel:0371784172"));
-                startActivity(callIntent);
-            }
-        });
-
-        AlertDialog dialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-        builder.setTitle(getString(R.string.options_menu_contact))
-                .setView(dialogContainer)
-                .setCancelable(true)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-        dialog = builder.create();
-        dialog.show();
     }
 
     @Override
@@ -539,12 +422,7 @@ public class MapsActivity extends AppCompatActivity
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
         createMarkers();
         setUpMap();
-        for (StationsModel s : mStationsArray) {
-            overallBikes += s.ocuppiedSpots;
-            overallSpots += s.emptySpots;
-            overallTotal += s.maximumNumberOfBikes;
-            s.isFavourite = PersistenceManager.getInstance().isFavourite(s.stationName);
-        }
+        SettingsDialogs.getInstance().updateOverallStats(mStationsArray);
     }
 
     @Override
@@ -554,19 +432,22 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public void onClick(View v) {
+
+        PersistenceManager persistenceManager = PersistenceManager.getInstance();
+
         switch(v.getId()){
             case(R.id.btn_show_favourites):
 
-                if(PersistenceManager.getInstance().getShowFavouritesOnly()){
-                    btnShowFavourites.setBackgroundResource(R.drawable.ic_favourites_pressed);
-                    PersistenceManager.getInstance().setShowFavouritesOnly(false);
+                if(persistenceManager.getShowFavouritesOnly()){
+
+                    persistenceManager.setShowFavouritesOnly(false);
                     for(MarkerOptions m : mapMarkers){
                         m.visible(true);
                     }
                 }else{
-                    if (PersistenceManager.getInstance().getFavouriteStations().size() > 0) {
-                        btnShowFavourites.setBackgroundResource(R.drawable.ic_favourite);
-                        PersistenceManager.getInstance().setShowFavouritesOnly(true);
+                    if (persistenceManager.getFavouriteStations().size() > 0) {
+
+                        persistenceManager.setShowFavouritesOnly(true);
                         hideNonFavouriteMarkers();
                     } else {
                         Toast.makeText(MapsActivity.this, getString(R.string.toast_no_favourites), Toast.LENGTH_LONG).show();
@@ -577,15 +458,14 @@ public class MapsActivity extends AppCompatActivity
                 break;
             case (R.id.btn_timer):
 
-                if (!btnTimer.isSelected()) {
+                if (!persistenceManager.getIsCountingDown()) {
                     alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                    long alarmTime = SystemClock.elapsedRealtime() + PersistenceManager.getInstance().getTimerMinutes() * 1000;
+                    long alarmTime = SystemClock.elapsedRealtime() + 1000 * 60 * persistenceManager.getTimerMinutes();
                     Intent notificationHandlerIntent = new Intent(this, NotificationHandler.class);
                     alarmPendingIntent = PendingIntent.getBroadcast(this, RESULT_OK, notificationHandlerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, alarmTime, alarmPendingIntent);
 
-                    btnTimer.setBackgroundResource(R.drawable.ic_timer_pressed);
-                    btnTimer.setSelected(true);
+                    persistenceManager.setIsCountingDown(true);
 
                     Toast.makeText(MapsActivity.this, getString(R.string.alarm_on), Toast.LENGTH_SHORT).show();
                 }else{
@@ -593,14 +473,15 @@ public class MapsActivity extends AppCompatActivity
                     alarmManager = null;
                     alarmPendingIntent = null;
 
-                    btnTimer.setBackgroundResource(R.drawable.ic_timer);
-                    btnTimer.setSelected(false);
+                    persistenceManager.setIsCountingDown(false);
 
                     Toast.makeText(MapsActivity.this, getString(R.string.alarm_off), Toast.LENGTH_SHORT).show();
                 }
 
                 break;
         }
+
+        refreshUIButtons();
     }
 
     int backPressedCount = 0;
