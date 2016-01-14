@@ -191,7 +191,7 @@ public class SettingsDialogs {
                     public void onClick(DialogInterface dialog, int which) {
 
                         PersistenceManager.getInstance().setTimerMinutes(timerLimit[0]);
-                        
+
                         dialog.dismiss();
                     }
                 });
