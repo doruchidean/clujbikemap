@@ -3,10 +3,18 @@ package com.doruchidean.clujbikemap;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Doru on 19/11/15.
@@ -18,9 +26,10 @@ public class ApiClient {
     private AsyncHttpClient mClient;
     private String
             baseUrl = "http://84.232.185.103",
-            login = "/logare", //todo vezi daca il poti folosi
             getStations = "/Station/Read",
-            getCardDetails="/CTIInformation/ReadTransactionDetails/"; //todo vezi daca o mai lucrat baietii si functioneaza callu asta
+            busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv",
+            login = "/logare", //todo vezi daca il poti folosi
+            getCardDetails="/CTIInformation/ReadTransactionDetails/"; //todo vezi daca functioneaza callu asta
 
     public ApiClient(){
 
@@ -35,11 +44,11 @@ public class ApiClient {
 
         Log.d("traces", "updating info");
 
-        mClient.post(baseUrl+getStations, new JsonHttpResponseHandler() {
+        mClient.post(baseUrl + getStations, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 
-                caller.onApiCallSuccess(Factory.getInstance().factorizeResponse(response));
+                caller.onApiCallSuccessStations(Factory.getInstance().factorizeResponse(response));
 
             }
 
@@ -50,5 +59,34 @@ public class ApiClient {
             }
         });
     }
+
+    public void getBusSchedule(final Callbacks.ApiCallbacks caller, String bus){
+
+        String url = Factory.getInstance().resolveBusInUrl(bus, busUrl);
+
+        trace("getting bus " + bus + " at" + url);
+
+        String[] contentTypes = {"text/csv"};
+        mClient.get(url, new BinaryHttpResponseHandler(contentTypes) {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
+
+                HashMap<String, ArrayList<String>> leavingMinutes = Factory.getInstance().readCsv(new ByteArrayInputStream(binaryData));
+                caller.onApiCallSuccessBusLeaving(leavingMinutes);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] binaryData, Throwable error) {
+                trace("FAILED GETTING BUS SCHEDULE " + error.getMessage());
+                caller.onApiCallFail(error.getMessage());
+            }
+        });
+
+    }
+
+    private void trace(String s){
+        Log.d("traces", s);
+    }
+
 
 }

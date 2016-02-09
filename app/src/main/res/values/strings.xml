@@ -19,4 +19,65 @@
     <string name="notification_text">Countdown ended (%1$d:%2$d)</string>
     <string name="options_menu_timer_limit">Timer Limit</string>
     <string name="dialog_timer_limit_title">Timer limit</string>
+    <string name="dialog_add_buses_title">Select bus</string>
+    <string name="bus_bar_subtitle_full">leaving in more than 1 hour</string>
+    <string name="bus_bar_subtitle_to_be_filled">leaving in</string>
+
+    <array name="available_buses">
+
+        <item> 1: Str. Bucium - P-ta 1 Mai</item>
+        <item> 3: Str. Unirii - P-ţa Gării</item>
+        <item> 4: Str. A. Vlaicu - P-ţa Gării</item>
+        <item> 5: P-ţa Gării - Aeroport</item>
+        <item> 6: Str. Bucium - Str. A.Vlaicu</item>
+        <item> 7: Str. A.Vlaicu - Str. Izlazului</item>
+        <item> 8: P-ţa M.Viteazul - Str. T.Vuia</item>
+        <item> 8L: P-ta Mărăşti - AGRO</item>
+        <item> 9: Str. Bucium - P-ţa Gării</item>
+        <item> 19: P M.Viteazul - Str.Mehedinţi</item>
+        <item> 20: P. Şt.cel Mare - C. Borhanci</item>
+        <item> 21: P.M.Viteazul - C.Buna Ziua</item>
+        <item> 22: P-ţa Gării - Str. I. Moldovan</item>
+        <item> 23: Emerson - P.M.Viteazul</item>
+        <item> 24: Str. Unirii - Str. Bucium</item>
+        <item> 24B: Str. Unirii - Polus Center</item>
+        <item> 25: Str. Bucium - Str. Unirii</item>
+        <item> 25N: Str. Unirii - Str. Bucium</item>
+        <item> 26: C.Grigorescu - B-dul Muncii</item>
+        <item> 27: C.Grigorescu - P-ţa Gării</item>
+        <item> 28: C.Grigorescu - P.M.Viteazul</item>
+        <item> 28B: Polus Center - P.M.Viteazul</item>
+        <item> 29: Str. Bucium - P. M.Viteazul</item>
+        <item> 30: C.Grigorescu - Str. A.Vlaicu</item>
+        <item> 31: P.M.Viteazul - Cal. Baciului</item>
+        <item> 32: St.C.Brâncuşi-P.M.Viteazul</item>
+        <item> 32B: Str. C.Brâncuşi - P-ţa Gării</item>
+        <item> 33: Al. Băişoara - P.M.Viteazul</item>
+        <item> 34: Al. Băişoara - P-ţa 1 Mai</item>
+        <item> 35: Cart. Zorilor - P-ţa Gării</item>
+        <item> 36B: P.M.Viteazul - Str. I.I. Brad</item>
+        <item> 37: P.M.Viteazul - Str.R.Vuia</item>
+        <item> 38: P.M.Viteazul - Vânătorului</item>
+        <item> 39: P.M.Viteazul - V. Chintăului</item>
+        <item> 39L: P.M.Viteazul - Cătun</item>
+        <item> 40: P-ţa Ş.cel Mare - C.Faget</item>
+        <item> 40S: P-ţa Ş.cel Mare - C.Turzii</item>
+        <item> 41: C.Grigorescu - P-ța 1 Mai</item>
+        <item> 42: P.M.Viteazul - Str.Câmpului</item>
+        <item> 43: C.Grigorescu - C.Zorilor</item>
+        <item> 43B: C.Grigorescu - C.Turzii</item>
+        <item> 43P: Polus Center - C.Zorilor</item>
+        <item> 46: S.E.Ionesco - P.Șt.cel Mare</item>
+        <item> 46B: Cart. Zorilor - Str. A.Vlaicu</item>
+        <item> 47: P.M.Viteazul - Str.Harghitei</item>
+        <item> 47B: P-ța Gării - Str.Harghitei</item>
+        <item> 48: Al.Băișoara - B-dul Muncii</item>
+        <item> 50: C.Zorilor - B-dul Muncii</item>
+        <item> 52: Str. Bucium - Str. Plevnei</item>
+        <item> 87B: Str. Bucium - Polus Center</item>
+        <item> 100: P-ța Gării - B-dul Muncii</item>
+        <item> 101: Str. Bucium - P-ța Gării</item>
+        <item> 102: Str. Bucium - B-dul Muncii</item>
+
+    </array>
 </resources>

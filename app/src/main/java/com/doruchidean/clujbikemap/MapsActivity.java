@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -21,8 +22,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,7 +43,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
@@ -52,13 +59,12 @@ public class MapsActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private double userLatitude = 46.775627, userLongitude = 23.590935;
 
-    private int overallBikes = 0, overallSpots = 0, overallTotal = 0;
-
     private ImageButton btnShowFavourites, btnTimer;
     private View stationDialog;
     private TextView stationDialogName, stationDialogAddress, stationDialogEmptySpots,
-            stationDialogOccupiedSpots, stationDialogStatus;
+            stationDialogOccupiedSpots, stationDialogStatus, tvBusCapat1, tvBusCapat2;
     private ImageView stationDialogFavouriteButton;
+    private LinearLayout llTimesLeft, llTimesRight;
     private AlarmManager alarmManager;
     private PendingIntent alarmPendingIntent;
 
@@ -76,6 +82,10 @@ public class MapsActivity extends AppCompatActivity
 
         btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
         btnTimer = (ImageButton) findViewById(R.id.btn_timer);
+        tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
+        tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
+        llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
+        llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
 
     }
 
@@ -91,6 +101,10 @@ public class MapsActivity extends AppCompatActivity
         }
 
         ApiClient.getInstance().getStations(MapsActivity.this);
+
+        if(PersistenceManager.getInstance().getSelectedBus().length() > 0){
+            ApiClient.getInstance().getBusSchedule(MapsActivity.this, PersistenceManager.getInstance().getSelectedBus());
+        }
 
         setUpMapIfNeeded();
 
@@ -415,7 +429,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onApiCallSuccess(ArrayList<StationsModel> stationsArray) {
+    public void onApiCallSuccessStations(ArrayList<StationsModel> stationsArray) {
         this.mStationsArray = stationsArray;
         Collections.sort(this.mStationsArray);
 
@@ -426,6 +440,57 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
+    public void onApiCallSuccessBusLeaving(HashMap<String, ArrayList<String>> leavingTimes) {
+
+        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft, tvBusCapat1);
+        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight, tvBusCapat2);
+    }
+
+    private void setTextsInBusBar(ArrayList<String> texts, LinearLayout parent, TextView tvCapat){
+
+        parent.removeAllViews();
+
+        tvCapat.setText(texts.get(0));
+
+        TextView tvSubtitle = new TextView(MapsActivity.this);
+        tvSubtitle.setTextColor(Color.WHITE);
+        if (texts.size() > 1) {
+            tvSubtitle.setText(getString(R.string.bus_bar_subtitle_to_be_filled));
+        } else {
+            tvSubtitle.setText(getString(R.string.bus_bar_subtitle_full));
+        }
+        parent.addView(tvSubtitle);
+
+        String minString;
+        int minInt;
+        for(int i=1; i<texts.size(); i++){
+
+            TextView tvMinute = new TextView(MapsActivity.this);
+            tvMinute.setSingleLine();
+
+            minString = texts.get(i);
+            minInt = Integer.valueOf(minString);
+
+            if(minInt <= 3){
+                tvMinute.setTextColor(Color.RED);
+            }else if(minInt <= 10){
+                tvMinute.setTextColor(Color.YELLOW);
+            }else{
+                tvMinute.setTextColor(Color.GREEN);
+            }
+
+            if (i<texts.size()-1) {
+                minString += ", ";
+            }else{
+                minString += " min";
+            }
+
+            tvMinute.setText(minString);
+            parent.addView(tvMinute);
+        }
+    }
+
+    @Override
     public void onApiCallFail(String error) {
         Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations) + error, Toast.LENGTH_LONG).show();
     }
@@ -433,7 +498,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
 
-        PersistenceManager persistenceManager = PersistenceManager.getInstance();
+        final PersistenceManager persistenceManager = PersistenceManager.getInstance();
 
         switch(v.getId()){
             case(R.id.btn_show_favourites):
@@ -479,6 +544,51 @@ public class MapsActivity extends AppCompatActivity
                 }
 
                 break;
+            case (R.id.btn_add_buses):
+
+                View busesContainer = View.inflate(MapsActivity.this, R.layout.view_buses, null);
+
+                //prepare the list
+                List<String> buses = Arrays.asList(getResources().getStringArray(R.array.available_buses));
+                ListView lv = (ListView) busesContainer.findViewById(R.id.lv_buses);
+                final BusListAdapter busListAdapter = new BusListAdapter(MapsActivity.this, buses);
+                int selectedBusPosition=-1;
+                for(int i=0; i<buses.size();i++){
+                    if(buses.get(i).equalsIgnoreCase(persistenceManager.getSelectedBus())){
+                        selectedBusPosition = i;
+                    }
+                }
+                busListAdapter.setSelectedBus(selectedBusPosition);
+                lv.setAdapter(busListAdapter);
+
+                lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        view.setBackgroundColor(Color.GRAY);
+                        persistenceManager.setSelectedBus(busListAdapter.getItem(position));
+                        busListAdapter.setSelectedBus(position);
+                        busListAdapter.notifyDataSetChanged();
+                    }
+                });
+
+                AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this)
+                        .setView(busesContainer)
+                        .setTitle(getString(R.string.dialog_add_buses_title))
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ApiClient.getInstance().getBusSchedule(MapsActivity.this, persistenceManager.getSelectedBus());
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create();
+                dialog.show();
+                break;
         }
 
         refreshUIButtons();
@@ -495,16 +605,16 @@ public class MapsActivity extends AppCompatActivity
         }
         Handler h = new Handler();
         h.postDelayed(
-            new Runnable(){
-                @Override
-                public void run() {
-                    backPressedCount = 0;
-                }
-            },
-            3500
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        backPressedCount = 0;
+                    }
+                },
+                3500
         );
 
-        Toast.makeText(this, getString(R.string.confirm_exit_application)+" " +getString(R.string.app_name), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.confirm_exit_application) + " " + getString(R.string.app_name), Toast.LENGTH_SHORT).show();
     }
 
     @Override

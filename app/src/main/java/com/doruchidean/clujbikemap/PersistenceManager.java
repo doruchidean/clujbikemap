@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Doru on 07/01/16.
@@ -23,7 +25,8 @@ public class PersistenceManager {
             COLD_LIMIT = "coldlimit",
             HOT_LIMIT = "hotlimit",
             TIMER_MINUTES="timermin",
-            IS_COUNTING_DOWN = "iscounting";
+            IS_COUNTING_DOWN = "iscounting",
+            BUSES="buses";
 
     //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
@@ -37,12 +40,14 @@ public class PersistenceManager {
             mHotLimit,
             mTimerMinutes;
 
+    private String mSelectedBus;
+
     private PersistenceManager(){
     }
 
     /**
      * This method must be called once at the start of the app
-     * @param context
+     * @param context used to save data
      */
     public void loadData(Context context){
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
@@ -57,7 +62,8 @@ public class PersistenceManager {
         mIsCountingDown = sp.getBoolean(IS_COUNTING_DOWN, false);
         mColdLimit = sp.getInt(COLD_LIMIT, 3);
         mHotLimit = sp.getInt(HOT_LIMIT, 3);
-        mTimerMinutes = sp.getInt(TIMER_MINUTES, 69); //todo update default value to 45 after testing
+        mTimerMinutes = sp.getInt(TIMER_MINUTES, 45);
+        mSelectedBus = sp.getString(BUSES, "");
 
     }
 
@@ -76,6 +82,7 @@ public class PersistenceManager {
         editor.putInt(HOT_LIMIT, mHotLimit);
         editor.putInt(TIMER_MINUTES, mTimerMinutes);
         editor.putBoolean(IS_COUNTING_DOWN, mIsCountingDown);
+        editor.putString(BUSES, mSelectedBus);
 
         editor.apply();
     }
@@ -144,5 +151,13 @@ public class PersistenceManager {
     }
     public boolean getIsCountingDown(){
         return mIsCountingDown;
+    }
+
+    public String getSelectedBus() {
+        return mSelectedBus;
+    }
+
+    public void setSelectedBus(String mSelectedBuses) {
+        this.mSelectedBus = mSelectedBuses;
     }
 }
