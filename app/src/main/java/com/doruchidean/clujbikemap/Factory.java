@@ -23,7 +23,12 @@ public class Factory {
 
     public static final String
             MINUTES_CAPAT_1 = "capat1",
-            MINUTES_CAPAT_2="capat2";
+            MINUTES_CAPAT_2="capat2",
+            PLECARI_CAPAT_1="plecari1",
+            PLECARI_CAPAT_2="pelcari2",
+            NUME_CAPETE="numecapete";
+
+    private final int minMinutes = 0, maxMinutes=30;
 
     public static Factory getInstance() {
         return ourInstance;
@@ -71,11 +76,13 @@ public class Factory {
         return stationsArray;
     }
 
-    public String resolveBusInUrl(String bus, String url){
+    public String getBusNumber(String busName){
+        return busName.split(":")[0];
+    }
+    public String resolveBusInUrl(String busName, String url){
         Calendar calendar = Calendar.getInstance();
 
-        String[] split = bus.split(":");
-        String busExtension = split[0];
+        String busExtension = getBusNumber(busName);
 
         switch (calendar.get(Calendar.DAY_OF_WEEK)){
             case(6): busExtension = busExtension+"_s";
@@ -98,8 +105,11 @@ public class Factory {
         int busHour, busMin, busTimeSeconds, timeDifference;
 
         HashMap<String, ArrayList<String>> resultList = new HashMap<>();
-        ArrayList<String> capatul1 = new ArrayList<>();
-        ArrayList<String> capatul2 = new ArrayList<>();
+        ArrayList<String> numeCapete = new ArrayList<>();
+        ArrayList<String> minutesCapatul1 = new ArrayList<>();
+        ArrayList<String> minutesCapatul2 = new ArrayList<>();
+        ArrayList<String> plecariCapatul1 = new ArrayList<>();
+        ArrayList<String> plecariCapatul2 = new ArrayList<>();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         try {
@@ -117,6 +127,8 @@ public class Factory {
 
                 //row 0 reprezinta orele pt capatul 1 al linii
                 if(row[0].contains(":")) {
+
+                    plecariCapatul1.add(row[0]);
                     String[] busHourAndMin = row[0].split(":");
                     busHour = Integer.valueOf(busHourAndMin[0]);
                     if(currentHour == busHour || currentHour+1==busHour) {
@@ -125,18 +137,20 @@ public class Factory {
                         busTimeSeconds = busHour * 60 * 60 + busMin * 60;
                         timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
 
-                        if (timeDifference>=0 && timeDifference <= 60) {
-                            capatul1.add(String.valueOf(timeDifference));
+                        if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
+                            minutesCapatul1.add(String.valueOf(timeDifference));
                         }
                     }
 
-                }else if(row[0].contains("route_long_name")){  //if row has the route we keep it as a header
+                }else if(row[0].contains("route_long_name")){  //if row has the route we show it in the bus bar
                     String[] capete = row[1].split(" - ");
-                    capatul1.add(capete[0]);
-                    capatul2.add(capete[1]);
+                    numeCapete.add(capete[0]+":");
+                    numeCapete.add(capete[1]+":");
                 }
                 //row 1 reprezinta orele pt capatul 2 al linii
                 if(row[1].contains(":")) {
+
+                    plecariCapatul2.add(row[1]);
                     String[] busHourAndMin = row[1].split(":");
                     busHour = Integer.valueOf(busHourAndMin[0]);
                     if(currentHour == busHour || currentHour+1==busHour) {
@@ -145,16 +159,19 @@ public class Factory {
                         busTimeSeconds = busHour * 60 * 60 + busMin * 60;
                         timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
 
-                        if (timeDifference>=0 && timeDifference <= 60) {
-                            capatul2.add(String.valueOf(timeDifference));
+                        if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
+                            minutesCapatul2.add(String.valueOf(timeDifference));
                         }
                     }
 
                 }
             }
 
-            resultList.put(MINUTES_CAPAT_1, capatul1);
-            resultList.put(MINUTES_CAPAT_2, capatul2);
+            resultList.put(NUME_CAPETE, numeCapete);
+            resultList.put(MINUTES_CAPAT_1, minutesCapatul1);
+            resultList.put(MINUTES_CAPAT_2, minutesCapatul2);
+            resultList.put(PLECARI_CAPAT_1, plecariCapatul1);
+            resultList.put(PLECARI_CAPAT_2, plecariCapatul2);
         }
         catch (IOException ex) {
             throw new RuntimeException("Error in reading CSV file: "+ex);

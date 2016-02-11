@@ -17,7 +17,7 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,19 +52,20 @@ public class MapsActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, Callbacks.ApiCallbacks, Callbacks.SettingsDialogsCallback, View.OnClickListener {
 
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
-
     private ArrayList<StationsModel> mStationsArray = new ArrayList<>();
+    private ArrayList<String> plecariCapat1 = new ArrayList<>();
+    private ArrayList<String> plecariCapat2 = new ArrayList<>();
+    private String capat1Title, capat2Title;
+
+    private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private double userLatitude = 46.775627, userLongitude = 23.590935;
 
     private ImageButton btnShowFavourites, btnTimer;
-    private View stationDialog;
-    private TextView stationDialogName, stationDialogAddress, stationDialogEmptySpots,
-            stationDialogOccupiedSpots, stationDialogStatus, tvBusCapat1, tvBusCapat2;
-    private ImageView stationDialogFavouriteButton;
+    private TextView tvBusCapat1, tvBusCapat2, tvSelectedBus;
     private LinearLayout llTimesLeft, llTimesRight;
+
     private AlarmManager alarmManager;
     private PendingIntent alarmPendingIntent;
 
@@ -84,6 +85,7 @@ public class MapsActivity extends AppCompatActivity
         btnTimer = (ImageButton) findViewById(R.id.btn_timer);
         tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
         tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
+        tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
         llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
         llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
 
@@ -293,13 +295,13 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
 
-        stationDialog = View.inflate(MapsActivity.this, R.layout.dialog_station, null);
-        stationDialogName = (TextView) stationDialog.findViewById(R.id.tvDialogName);
-        stationDialogAddress = (TextView) stationDialog.findViewById(R.id.tvDialogAddress);
-        stationDialogEmptySpots = (TextView) stationDialog.findViewById(R.id.tvEmptySpots);
-        stationDialogOccupiedSpots = (TextView) stationDialog.findViewById(R.id.tvOcuppiedSpots);
-        stationDialogStatus = (TextView) stationDialog.findViewById(R.id.tvStatus);
-        stationDialogFavouriteButton = (ImageView) stationDialog.findViewById(R.id.btn_add_favourite);
+        View stationDialog = View.inflate(MapsActivity.this, R.layout.dialog_station, null);
+        TextView stationDialogName = (TextView) stationDialog.findViewById(R.id.tvDialogName);
+        TextView stationDialogAddress = (TextView) stationDialog.findViewById(R.id.tvDialogAddress);
+        TextView stationDialogEmptySpots = (TextView) stationDialog.findViewById(R.id.tvEmptySpots);
+        TextView stationDialogOccupiedSpots = (TextView) stationDialog.findViewById(R.id.tvOcuppiedSpots);
+        TextView stationDialogStatus = (TextView) stationDialog.findViewById(R.id.tvStatus);
+        ImageView stationDialogFavouriteButton = (ImageView) stationDialog.findViewById(R.id.btn_add_favourite);
 
         stationDialogName.setText(station.stationName);
         stationDialogAddress.setText(station.address);
@@ -442,20 +444,34 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onApiCallSuccessBusLeaving(HashMap<String, ArrayList<String>> leavingTimes) {
 
-        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft, tvBusCapat1);
-        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight, tvBusCapat2);
+        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft);
+        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight);
+        tvSelectedBus.setText(Factory.getInstance().getBusNumber(PersistenceManager.getInstance().getSelectedBus()));
+
+        plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
+        plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
+
+        capat1Title = leavingTimes.get(Factory.NUME_CAPETE).get(0);
+        capat2Title = leavingTimes.get(Factory.NUME_CAPETE).get(1);
+        tvBusCapat1.setText(capat1Title);
+        tvBusCapat2.setText(capat2Title);
     }
 
-    private void setTextsInBusBar(ArrayList<String> texts, LinearLayout parent, TextView tvCapat){
+    private void setTextsInBusBar(ArrayList<String> minTexts, LinearLayout parent){
 
         parent.removeAllViews();
 
-        tvCapat.setText(texts.get(0));
+        int padding2dp = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                2,
+                getResources().getDisplayMetrics()
+        );
 
         TextView tvSubtitle = new TextView(MapsActivity.this);
         tvSubtitle.setTextColor(Color.WHITE);
-        if (texts.size() > 1) {
+        if (minTexts.size() > 0) {
             tvSubtitle.setText(getString(R.string.bus_bar_subtitle_to_be_filled));
+            tvSubtitle.setPadding(0,0,padding2dp,0);
         } else {
             tvSubtitle.setText(getString(R.string.bus_bar_subtitle_full));
         }
@@ -463,12 +479,13 @@ public class MapsActivity extends AppCompatActivity
 
         String minString;
         int minInt;
-        for(int i=1; i<texts.size(); i++){
+        for(int i=0; i<minTexts.size(); i++){
 
             TextView tvMinute = new TextView(MapsActivity.this);
+            tvMinute.setPadding(padding2dp,0,0,0);
             tvMinute.setSingleLine();
 
-            minString = texts.get(i);
+            minString = minTexts.get(i);
             minInt = Integer.valueOf(minString);
 
             if(minInt <= 3){
@@ -479,7 +496,7 @@ public class MapsActivity extends AppCompatActivity
                 tvMinute.setTextColor(Color.GREEN);
             }
 
-            if (i<texts.size()-1) {
+            if (i<minTexts.size()-1) {
                 minString += ", ";
             }else{
                 minString += " min";
@@ -544,9 +561,9 @@ public class MapsActivity extends AppCompatActivity
                 }
 
                 break;
-            case (R.id.btn_add_buses):
+            case (R.id.btn_select_bus):
 
-                View busesContainer = View.inflate(MapsActivity.this, R.layout.view_buses, null);
+                View busesContainer = View.inflate(MapsActivity.this, R.layout.dialog_buses, null);
 
                 //prepare the list
                 List<String> buses = Arrays.asList(getResources().getStringArray(R.array.available_buses));
@@ -573,11 +590,13 @@ public class MapsActivity extends AppCompatActivity
 
                 AlertDialog dialog = new AlertDialog.Builder(MapsActivity.this)
                         .setView(busesContainer)
-                        .setTitle(getString(R.string.dialog_add_buses_title))
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        .setTitle(getString(R.string.dialog_add_buses_title)
+                        )
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 ApiClient.getInstance().getBusSchedule(MapsActivity.this, persistenceManager.getSelectedBus());
+                                tvSelectedBus.setText(Factory.getInstance().getBusNumber(persistenceManager.getSelectedBus()));
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -588,6 +607,43 @@ public class MapsActivity extends AppCompatActivity
                         })
                         .create();
                 dialog.show();
+                break;
+            case(R.id.btn_full_bus_schedule):
+
+                View busTimesContainer = View.inflate(MapsActivity.this, R.layout.dialog_bus_times, null);
+                TextView tvCapat1 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_title_1);
+                TextView tvPlecari1 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_1);
+                TextView tvCapat2 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_title_2);
+                TextView tvPlecari2 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_2);
+
+                tvCapat1.setText(capat1Title);
+                tvCapat2.setText(capat2Title);
+                String plecari1="";
+                for(String s : plecariCapat1){
+                    plecari1 += s+"| ";
+                }
+                tvPlecari1.setText(plecari1);
+                String plecari2="";
+                for(String s : plecariCapat2){
+                    plecari2 += s+"| ";
+                }
+                tvPlecari2.setText(plecari2);
+
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle(getString(R.string.dialog_orar_complet) + " " +
+                                Factory.getInstance().getBusNumber(
+                                        PersistenceManager.getInstance().getSelectedBus()
+                                )
+                        )
+                        .setView(busTimesContainer)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
                 break;
         }
 
@@ -623,7 +679,4 @@ public class MapsActivity extends AppCompatActivity
         super.onDestroy();
     }
 
-    public static void trace(String s){
-        Log.d("traces", s);
-    }
 }

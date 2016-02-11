@@ -20,10 +20,11 @@
     <string name="options_menu_timer_limit">Timer Limit</string>
     <string name="dialog_timer_limit_title">Timer limit</string>
     <string name="dialog_add_buses_title">Select bus</string>
-    <string name="bus_bar_subtitle_full">leaving in more than 1 hour</string>
+    <string name="bus_bar_subtitle_full">leaving in more than 30 min</string>
     <string name="bus_bar_subtitle_to_be_filled">leaving in</string>
+    <string name="dialog_orar_complet">Orar Linia</string>
 
-    <array name="available_buses">
+    <string-array name="available_buses">
 
         <item> 1: Str. Bucium - P-ta 1 Mai</item>
         <item> 3: Str. Unirii - P-ţa Gării</item>
@@ -79,5 +80,5 @@
         <item> 101: Str. Bucium - P-ța Gării</item>
         <item> 102: Str. Bucium - B-dul Muncii</item>
 
-    </array>
+    </string-array>
 </resources>

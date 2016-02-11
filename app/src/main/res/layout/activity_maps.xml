@@ -3,10 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MapsActivity">
-    <fragment
-        android:layout_height="fill_parent" android:id="@+id/map"
+
+    <fragment android:id="@+id/map"
+        android:layout_height="fill_parent"
         android:layout_width="match_parent"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_above="@+id/bus_bar"/>
 
     <ImageButton android:id="@+id/btn_show_favourites"
         android:onClick="onClick"
@@ -28,8 +30,7 @@
         android:layout_toStartOf="@id/btn_show_favourites"
         android:layout_marginTop="5dp"/>
 
-    <LinearLayout android:id="@+id/btn_add_buses"
-        android:onClick="onClick"
+    <LinearLayout android:id="@id/bus_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -38,48 +39,70 @@
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <LinearLayout
+        <LinearLayout android:id="@+id/btn_full_bus_schedule"
+            android:onClick="onClick"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight=".5"
-            android:orientation="vertical">
-
-            <TextView android:id="@+id/tv_bus_capat1"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:textColor="@color/white"
-                android:text="Tap here to add a bus"/>
-
-            <LinearLayout android:id="@+id/ll_times_left"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight=".5"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="top|end">
+            android:layout_weight=".85">
 
-            <TextView android:id="@+id/tv_bus_capat2"
-                android:layout_height="wrap_content"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:gravity="end"
-                android:textColor="@color/white"
-                android:text="No buses added yet"/>
-
-            <LinearLayout android:id="@+id/ll_times_right"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-            </LinearLayout>
-        </LinearLayout>
 
+                <TextView android:id="@+id/tv_bus_capat1"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:textColor="@color/white"
+                    android:singleLine="true"
+                    android:text="1.Tap the bus icon to add one bus"/>
+
+                <LinearLayout android:id="@+id/ll_times_left"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="4dp"
+                    android:paddingStart="4dp"
+                    android:paddingRight="4dp"
+                    android:paddingEnd="4dp"
+                    android:orientation="horizontal"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView android:id="@+id/tv_bus_capat2"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:textColor="@color/white"
+                    android:singleLine="true"
+                    android:text="2.Tap here to open the full timetable"/>
+
+                <LinearLayout android:id="@+id/ll_times_right"
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"
+                    android:paddingLeft="4dp"
+                    android:paddingStart="4dp"
+                    android:paddingRight="4dp"
+                    android:paddingEnd="4dp"
+                    android:orientation="horizontal"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+        <TextView android:id="@+id/btn_select_bus"
+            android:onClick="onClick"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".15"
+            android:background="@drawable/ic_bus"
+            android:paddingBottom="6dp"
+            android:gravity="center"
+            android:text="Add"
+            android:textColor="@color/white"/>
     </LinearLayout>
 
 </RelativeLayout>
