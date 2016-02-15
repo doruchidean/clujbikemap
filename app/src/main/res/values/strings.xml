@@ -20,9 +20,10 @@
     <string name="options_menu_timer_limit">Timer Limit</string>
     <string name="dialog_timer_limit_title">Timer limit</string>
     <string name="dialog_add_buses_title">Select bus</string>
-    <string name="bus_bar_subtitle_full">leaving in more than 30 min</string>
+    <string name="bus_bar_subtitle_full">leaving in more than %s min</string>
     <string name="bus_bar_subtitle_to_be_filled">leaving in</string>
     <string name="dialog_orar_complet">Orar Linia</string>
+    <string name="widget_default_text">Select bus from ClujBikeMap</string>
 
     <string-array name="available_buses">
 

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/widget_height"
+    android:background="@color/black_overlay"
+    android:padding="4dp">
+
+    <LinearLayout android:id="@+id/widget_icon_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/ic_bus"
+        android:gravity="center">
+
+        <TextView android:id="@+id/tv_widget_bus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="@color/white"
+            android:layout_marginBottom="3dp"
+            android:textSize="12sp"/>
+    </LinearLayout>
+
+    <TextView android:id="@+id/tv_widget_times_titlu_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/widget_icon_container"
+        android:layout_toStartOf="@id/widget_icon_container"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:layout_alignParentTop="true"
+        android:textColor="@color/white"/>
+
+    <TextView android:id="@+id/tv_widget_times_titlu_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/widget_icon_container"
+        android:layout_toEndOf="@id/widget_icon_container"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:layout_alignParentTop="true"
+        android:textColor="@color/white"
+        android:gravity="end"/>
+
+    <TextView android:id="@+id/tv_widget_times_capat_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/widget_icon_container"
+        android:layout_toStartOf="@id/widget_icon_container"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:layout_alignParentBottom="true"
+        android:textColor="@color/white"
+        android:text="@string/widget_default_text"/>
+
+    <TextView android:id="@+id/tv_widget_times_capat_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/widget_icon_container"
+        android:layout_toEndOf="@id/widget_icon_container"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:gravity="end"
+        android:layout_alignParentBottom="true"
+        android:textColor="@color/white"
+        android:text="@string/widget_default_text"/>
+
+</RelativeLayout>

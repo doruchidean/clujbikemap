@@ -1,7 +1,5 @@
 package com.doruchidean.clujbikemap;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +26,7 @@ public class Factory {
             PLECARI_CAPAT_2="pelcari2",
             NUME_CAPETE="numecapete";
 
-    private final int minMinutes = 0, maxMinutes=30;
+    public static final int minMinutes = 0, maxMinutes=45;
 
     public static Factory getInstance() {
         return ourInstance;
@@ -95,14 +93,56 @@ public class Factory {
         return url.replace("BUS_PERIOD", busExtension);
     }
 
+    public String getPlecariAtThisHour(ArrayList<String> plecariTotale){
+
+        Calendar calendar = Calendar.getInstance();
+
+        String result="|";
+        String plecare;
+
+        for(String s : plecariTotale){
+            plecare = isBusTimeInNextHour(false, s, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
+            if(plecare != null){
+                result += plecare + "| ";
+            }
+        }
+
+        if(result.length() == 1){
+            result = String.format(" > %s min", maxMinutes);
+        }
+        return result;
+    }
+
+    private String isBusTimeInNextHour(boolean requiresMinutes, String plecare, int currentHour, int currentMinute){
+
+        String[] busHourAndMin = plecare.split(":");
+        int busHour = Integer.valueOf(busHourAndMin[0]);
+        int currentTimeSeconds = currentHour*60*60 + currentMinute*60;
+
+        if(currentHour == busHour || currentHour+1==busHour) {
+
+            int busMin = Integer.valueOf(busHourAndMin[1]);
+            int busTimeSeconds = busHour * 60 * 60 + busMin * 60;
+            int timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
+
+            if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
+
+                if (requiresMinutes) {
+                    return String.valueOf(timeDifference);
+                } else {
+                    return plecare;
+                }
+            }
+        }
+        return null;
+    }
+
     public HashMap<String, ArrayList<String>> readCsv(InputStream inputStream){
 
         Calendar calendar = Calendar.getInstance();
         int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
         int currentMinute = calendar.get(Calendar.MINUTE);
-        int currentTimeSeconds = currentHour*60*60 + currentMinute*60;
-
-        int busHour, busMin, busTimeSeconds, timeDifference;
+        String minutesRemaining;
 
         HashMap<String, ArrayList<String>> resultList = new HashMap<>();
         ArrayList<String> numeCapete = new ArrayList<>();
@@ -129,17 +169,10 @@ public class Factory {
                 if(row[0].contains(":")) {
 
                     plecariCapatul1.add(row[0]);
-                    String[] busHourAndMin = row[0].split(":");
-                    busHour = Integer.valueOf(busHourAndMin[0]);
-                    if(currentHour == busHour || currentHour+1==busHour) {
 
-                        busMin = Integer.valueOf(busHourAndMin[1]);
-                        busTimeSeconds = busHour * 60 * 60 + busMin * 60;
-                        timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
-
-                        if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
-                            minutesCapatul1.add(String.valueOf(timeDifference));
-                        }
+                    minutesRemaining = isBusTimeInNextHour(true, row[0], currentHour, currentMinute);
+                    if(minutesRemaining != null){
+                        minutesCapatul1.add(minutesRemaining);
                     }
 
                 }else if(row[0].contains("route_long_name")){  //if row has the route we show it in the bus bar
@@ -151,19 +184,11 @@ public class Factory {
                 if(row[1].contains(":")) {
 
                     plecariCapatul2.add(row[1]);
-                    String[] busHourAndMin = row[1].split(":");
-                    busHour = Integer.valueOf(busHourAndMin[0]);
-                    if(currentHour == busHour || currentHour+1==busHour) {
 
-                        busMin = Integer.valueOf(busHourAndMin[1]);
-                        busTimeSeconds = busHour * 60 * 60 + busMin * 60;
-                        timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
-
-                        if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
-                            minutesCapatul2.add(String.valueOf(timeDifference));
-                        }
+                    minutesRemaining = isBusTimeInNextHour(true, row[1], currentHour, currentMinute);
+                    if(minutesRemaining != null){
+                        minutesCapatul2.add(minutesRemaining);
                     }
-
                 }
             }
 
@@ -183,10 +208,6 @@ public class Factory {
             throw new RuntimeException("Error while closing input stream: "+e);
         }
         return resultList;
-    }
-
-    private void trace(String s){
-        Log.d("traces", s);
     }
 
 }

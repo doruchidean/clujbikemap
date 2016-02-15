@@ -3,6 +3,7 @@ package com.doruchidean.clujbikemap;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,6 +28,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -473,7 +475,7 @@ public class MapsActivity extends AppCompatActivity
             tvSubtitle.setText(getString(R.string.bus_bar_subtitle_to_be_filled));
             tvSubtitle.setPadding(0,0,padding2dp,0);
         } else {
-            tvSubtitle.setText(getString(R.string.bus_bar_subtitle_full));
+            tvSubtitle.setText(String.format(getString(R.string.bus_bar_subtitle_full), Factory.maxMinutes));
         }
         parent.addView(tvSubtitle);
 
@@ -675,7 +677,36 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        PersistenceManager.getInstance().saveData(this);
+
+        PersistenceManager persistenceManager = PersistenceManager.getInstance();
+        persistenceManager.saveData(this);
+
+        int widgetId = persistenceManager.getWidgetId(MapsActivity.this);
+        if(widgetId > 0) {
+            //update widget
+
+            RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.widget);
+
+            remoteViews.setTextViewText(
+                    R.id.tv_widget_bus,
+                    Factory.getInstance().getBusNumber(persistenceManager.getSelectedBus())
+            );
+            remoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, capat1Title);
+            remoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, capat2Title);
+            remoteViews.setTextViewText(
+                    R.id.tv_widget_times_capat_1,
+                    Factory.getInstance().getPlecariAtThisHour(plecariCapat1)
+            );
+            remoteViews.setTextViewText(
+                    R.id.tv_widget_times_capat_2,
+                    Factory.getInstance().getPlecariAtThisHour(plecariCapat2)
+            );
+
+            AppWidgetManager.getInstance(MapsActivity.this).updateAppWidget(
+                    widgetId,
+                    remoteViews
+            );
+        }
         super.onDestroy();
     }
 

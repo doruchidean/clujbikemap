@@ -6,8 +6,6 @@ import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by Doru on 07/01/16.
@@ -26,7 +24,8 @@ public class PersistenceManager {
             HOT_LIMIT = "hotlimit",
             TIMER_MINUTES="timermin",
             IS_COUNTING_DOWN = "iscounting",
-            BUSES="buses";
+            BUSES="buses",
+            WIDGET_ID="widgetid";
 
     //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
@@ -64,7 +63,6 @@ public class PersistenceManager {
         mHotLimit = sp.getInt(HOT_LIMIT, 3);
         mTimerMinutes = sp.getInt(TIMER_MINUTES, 45);
         mSelectedBus = sp.getString(BUSES, "");
-
     }
 
     public void saveData(Context context){
@@ -159,5 +157,21 @@ public class PersistenceManager {
 
     public void setSelectedBus(String mSelectedBuses) {
         this.mSelectedBus = mSelectedBuses;
+    }
+
+    public int getWidgetId(Context context) {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+
+        return  sp.getInt(WIDGET_ID, 0);
+    }
+
+    public void setWidgetId(Context context, int mWidgetId) {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sp.edit();
+
+        editor.putInt(WIDGET_ID, mWidgetId);
+        editor.apply();
     }
 }
