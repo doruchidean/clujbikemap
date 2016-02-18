@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.loopj.android.http.Base64;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -25,7 +27,9 @@ public class PersistenceManager {
             TIMER_MINUTES="timermin",
             IS_COUNTING_DOWN = "iscounting",
             BUSES="buses",
-            WIDGET_ID="widgetid";
+            WIDGET_ID="widgetid",
+            BUS_SCHEDULE = "busschedule",
+            WIDGET_UPDATE_INTERVAL="widgetupdateinterval";
 
     //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
@@ -37,18 +41,14 @@ public class PersistenceManager {
     private int
             mColdLimit,
             mHotLimit,
-            mTimerMinutes;
+            mTimerMinutes,
+            mWidgetUpdateInterval;
 
-    private String mSelectedBus;
+    private String mBusName;
 
-    private PersistenceManager(){
-    }
+    private PersistenceManager(Context context){
 
-    /**
-     * This method must be called once at the start of the app
-     * @param context used to save data
-     */
-    public void loadData(Context context){
+        //load data
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 
         String raw = sp.getString(FAVOURITE_STATIONS, "");
@@ -62,7 +62,8 @@ public class PersistenceManager {
         mColdLimit = sp.getInt(COLD_LIMIT, 3);
         mHotLimit = sp.getInt(HOT_LIMIT, 3);
         mTimerMinutes = sp.getInt(TIMER_MINUTES, 45);
-        mSelectedBus = sp.getString(BUSES, "");
+        mBusName = sp.getString(BUSES, "");
+        mWidgetUpdateInterval = sp.getInt(WIDGET_UPDATE_INTERVAL, 3);
     }
 
     public void saveData(Context context){
@@ -80,14 +81,15 @@ public class PersistenceManager {
         editor.putInt(HOT_LIMIT, mHotLimit);
         editor.putInt(TIMER_MINUTES, mTimerMinutes);
         editor.putBoolean(IS_COUNTING_DOWN, mIsCountingDown);
-        editor.putString(BUSES, mSelectedBus);
+        editor.putString(BUSES, mBusName);
+        editor.putInt(WIDGET_UPDATE_INTERVAL, mWidgetUpdateInterval);
 
         editor.apply();
     }
 
-    public static PersistenceManager getInstance(){
+    public static PersistenceManager getInstance(Context context){
         if(mInstance == null){
-            mInstance = new PersistenceManager();
+            mInstance = new PersistenceManager(context);
         }
 
         return mInstance;
@@ -151,12 +153,12 @@ public class PersistenceManager {
         return mIsCountingDown;
     }
 
-    public String getSelectedBus() {
-        return mSelectedBus;
+    public String getBusName() {
+        return mBusName;
     }
 
-    public void setSelectedBus(String mSelectedBuses) {
-        this.mSelectedBus = mSelectedBuses;
+    public void setBusName(String busName) {
+        this.mBusName = busName;
     }
 
     public int getWidgetId(Context context) {
@@ -173,5 +175,32 @@ public class PersistenceManager {
 
         editor.putInt(WIDGET_ID, mWidgetId);
         editor.apply();
+    }
+
+    public void setBusSchedule(Context context, byte[] binaryData) {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(BUS_SCHEDULE, Base64.encodeToString(binaryData, Base64.NO_WRAP));
+        editor.apply();
+
+    }
+    public byte[] getBusSchedule(Context context){
+
+        byte[] result=null;
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        String s = sp.getString(BUS_SCHEDULE, null);
+        if(s != null){
+            result = Base64.decode(s, Base64.NO_WRAP);
+        }
+        return result;
+    }
+
+    public void setWidgetUpdateInterval(int interval){
+        mWidgetUpdateInterval = interval;
+    }
+
+    public int getWidgetUpdateInterval() {
+        return mWidgetUpdateInterval;
     }
 }

@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -77,6 +78,7 @@ public class Factory {
     public String getBusNumber(String busName){
         return busName.split(":")[0];
     }
+
     public String resolveBusInUrl(String busName, String url){
         Calendar calendar = Calendar.getInstance();
 
@@ -137,7 +139,9 @@ public class Factory {
         return null;
     }
 
-    public HashMap<String, ArrayList<String>> readCsv(InputStream inputStream){
+    public HashMap<String, ArrayList<String>> readCsv(byte[] binaryData){
+
+        InputStream inputStream = new ByteArrayInputStream(binaryData);
 
         Calendar calendar = Calendar.getInstance();
         int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -210,4 +214,16 @@ public class Factory {
         return resultList;
     }
 
+    public int getMinutesForDisplayedValue(int i){
+        switch (i){
+            case(1): return 30;
+            case(2): return 45;
+            case(3): return 60;
+            case(4): return 4*60;
+            case(5): return 8*60;
+            case(6): return 12*60;
+            case(7): return 24*60;
+            default: return 30;
+        }
+    }
 }

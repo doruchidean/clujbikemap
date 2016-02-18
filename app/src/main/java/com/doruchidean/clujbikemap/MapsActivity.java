@@ -68,15 +68,10 @@ public class MapsActivity extends AppCompatActivity
     private TextView tvBusCapat1, tvBusCapat2, tvSelectedBus;
     private LinearLayout llTimesLeft, llTimesRight;
 
-    private AlarmManager alarmManager;
-    private PendingIntent alarmPendingIntent;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
-        PersistenceManager.getInstance().loadData(this);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -106,8 +101,9 @@ public class MapsActivity extends AppCompatActivity
 
         ApiClient.getInstance().getStations(MapsActivity.this);
 
-        if(PersistenceManager.getInstance().getSelectedBus().length() > 0){
-            ApiClient.getInstance().getBusSchedule(MapsActivity.this, PersistenceManager.getInstance().getSelectedBus());
+        PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
+        if(pm.getBusName().length() > 0){
+            ApiClient.getInstance().getBusSchedule(MapsActivity.this, pm.getBusName());
         }
 
         setUpMapIfNeeded();
@@ -118,9 +114,10 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void refreshUIButtons(){
-        btnShowFavourites.setBackgroundResource(PersistenceManager.getInstance().getShowFavouritesOnly() ?
+        PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
+        btnShowFavourites.setBackgroundResource(pm.getShowFavouritesOnly() ?
                 R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
-        btnTimer.setBackgroundResource(PersistenceManager.getInstance().getIsCountingDown() ?
+        btnTimer.setBackgroundResource(pm.getIsCountingDown() ?
                 R.drawable.ic_timer_pressed : R.drawable.ic_timer);
     }
 
@@ -213,7 +210,7 @@ public class MapsActivity extends AppCompatActivity
 
     private void createMarkers(){
         MarkerOptions markerOptions;
-        PersistenceManager values = PersistenceManager.getInstance();
+        PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
 
         for (int i = 0; i < mStationsArray.size(); i++) {
 
@@ -225,9 +222,9 @@ public class MapsActivity extends AppCompatActivity
 
             if (station.ocuppiedSpots == 0) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_offline));
-            } else if (station.ocuppiedSpots < values.getColdLimit()) {
+            } else if (station.ocuppiedSpots < pm.getColdLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_underpopulated));
-            } else if (station.ocuppiedSpots < station.maximumNumberOfBikes - values.getHotLimit()) {
+            } else if (station.ocuppiedSpots < station.maximumNumberOfBikes - pm.getHotLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_online));
             } else {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_overpopulated));
@@ -237,8 +234,8 @@ public class MapsActivity extends AppCompatActivity
 
         }
 
-        if(PersistenceManager.getInstance().getShowFavouritesOnly()){
-            hideNonFavouriteMarkers();
+        if(pm.getShowFavouritesOnly()){
+            hideNonFavouriteMarkers(pm);
         }
 
     }
@@ -292,6 +289,7 @@ public class MapsActivity extends AppCompatActivity
     private void onMarkerClickFunction(final Marker marker){
 
         final StationsModel station = binarySearchStation(marker.getTitle());
+        final PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
 
         if(station == null){
             return;
@@ -318,12 +316,12 @@ public class MapsActivity extends AppCompatActivity
                 if (station.isFavourite) {
                     v.setBackgroundResource(R.drawable.ic_add_favourite);
                     station.isFavourite = false;
-                    PersistenceManager.getInstance().removeFavouriteStation(station.stationName);
+                    pm.removeFavouriteStation(station.stationName);
                     marker.setVisible(false);
                 } else {
                     v.setBackgroundResource(R.drawable.ic_favourite);
                     station.isFavourite = true;
-                    PersistenceManager.getInstance().addFavouriteStation(station.stationName);
+                    pm.addFavouriteStation(station.stationName);
                 }
 
             }
@@ -343,12 +341,12 @@ public class MapsActivity extends AppCompatActivity
         dialog.show();
     }
 
-    private void hideNonFavouriteMarkers(){
+    private void hideNonFavouriteMarkers(PersistenceManager pm){
         StationsModel matchingStation;
         for(MarkerOptions m : mapMarkers){
             matchingStation = binarySearchStation(m.getTitle());
             if(matchingStation != null) {
-                m.visible(PersistenceManager.getInstance().isFavourite(matchingStation.stationName));
+                m.visible(pm.isFavourite(matchingStation.stationName));
             }
         }
     }
@@ -412,10 +410,13 @@ public class MapsActivity extends AppCompatActivity
                 SettingsDialogs.getInstance().showContactDialog(MapsActivity.this);
                 break;
             case R.id.overall_stats:
-                SettingsDialogs.getInstance().showOverallStatsDialog(this);
+                SettingsDialogs.getInstance().showOverallStatsDialog(MapsActivity.this);
                 break;
             case R.id.timer_limit:
-                SettingsDialogs.getInstance().showTimerLimitDialog(this);
+                SettingsDialogs.getInstance().showTimerLimitDialog(MapsActivity.this);
+                break;
+            case R.id.widget_refresh_interval:
+                SettingsDialogs.getInstance().showWidgetUpdateTimeDialog(MapsActivity.this);
                 break;
         }
 
@@ -433,22 +434,27 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onApiCallSuccessStations(ArrayList<StationsModel> stationsArray) {
+    public void onSuccessBikeStations(ArrayList<StationsModel> stationsArray) {
         this.mStationsArray = stationsArray;
         Collections.sort(this.mStationsArray);
 
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
         createMarkers();
         setUpMap();
-        SettingsDialogs.getInstance().updateOverallStats(mStationsArray);
+        SettingsDialogs.getInstance().updateOverallStats(MapsActivity.this, mStationsArray);
     }
 
     @Override
-    public void onApiCallSuccessBusLeaving(HashMap<String, ArrayList<String>> leavingTimes) {
+    public void onSuccessBusTimes(byte[] binaryData) {
+
+        HashMap<String, ArrayList<String>> leavingTimes = Factory.getInstance().readCsv(binaryData);
+        PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
+
+        pm.setBusSchedule(this, binaryData);
 
         setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft);
         setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight);
-        tvSelectedBus.setText(Factory.getInstance().getBusNumber(PersistenceManager.getInstance().getSelectedBus()));
+        tvSelectedBus.setText(Factory.getInstance().getBusNumber(pm.getBusName()));
 
         plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
         plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
@@ -517,7 +523,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
 
-        final PersistenceManager persistenceManager = PersistenceManager.getInstance();
+        final PersistenceManager persistenceManager = PersistenceManager.getInstance(MapsActivity.this);
 
         switch(v.getId()){
             case(R.id.btn_show_favourites):
@@ -532,7 +538,7 @@ public class MapsActivity extends AppCompatActivity
                     if (persistenceManager.getFavouriteStations().size() > 0) {
 
                         persistenceManager.setShowFavouritesOnly(true);
-                        hideNonFavouriteMarkers();
+                        hideNonFavouriteMarkers(persistenceManager);
                     } else {
                         Toast.makeText(MapsActivity.this, getString(R.string.toast_no_favourites), Toast.LENGTH_LONG).show();
                     }
@@ -542,20 +548,22 @@ public class MapsActivity extends AppCompatActivity
                 break;
             case (R.id.btn_timer):
 
-                if (!persistenceManager.getIsCountingDown()) {
-                    alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                    long alarmTime = SystemClock.elapsedRealtime() + 1000 * 60 * persistenceManager.getTimerMinutes();
-                    Intent notificationHandlerIntent = new Intent(this, NotificationHandler.class);
-                    alarmPendingIntent = PendingIntent.getBroadcast(this, RESULT_OK, notificationHandlerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, alarmTime, alarmPendingIntent);
+                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                Intent notificationHandlerIntent = new Intent(this, NotificationHandler.class);
+                PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(this, RESULT_OK, notificationHandlerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+                if (!persistenceManager.getIsCountingDown()) {
+
+                    int minutes = Factory.getInstance().getMinutesForDisplayedValue(persistenceManager.getTimerMinutes());
+                    long alarmTime = SystemClock.elapsedRealtime()
+                            + 1000 * 60 * minutes;
+
+                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, alarmTime, alarmPendingIntent);
                     persistenceManager.setIsCountingDown(true);
 
                     Toast.makeText(MapsActivity.this, getString(R.string.alarm_on), Toast.LENGTH_SHORT).show();
                 }else{
                     alarmManager.cancel(alarmPendingIntent);
-                    alarmManager = null;
-                    alarmPendingIntent = null;
 
                     persistenceManager.setIsCountingDown(false);
 
@@ -573,7 +581,7 @@ public class MapsActivity extends AppCompatActivity
                 final BusListAdapter busListAdapter = new BusListAdapter(MapsActivity.this, buses);
                 int selectedBusPosition=-1;
                 for(int i=0; i<buses.size();i++){
-                    if(buses.get(i).equalsIgnoreCase(persistenceManager.getSelectedBus())){
+                    if(buses.get(i).equalsIgnoreCase(persistenceManager.getBusName())){
                         selectedBusPosition = i;
                     }
                 }
@@ -584,7 +592,7 @@ public class MapsActivity extends AppCompatActivity
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         view.setBackgroundColor(Color.GRAY);
-                        persistenceManager.setSelectedBus(busListAdapter.getItem(position));
+                        persistenceManager.setBusName(busListAdapter.getItem(position));
                         busListAdapter.setSelectedBus(position);
                         busListAdapter.notifyDataSetChanged();
                     }
@@ -597,8 +605,8 @@ public class MapsActivity extends AppCompatActivity
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                ApiClient.getInstance().getBusSchedule(MapsActivity.this, persistenceManager.getSelectedBus());
-                                tvSelectedBus.setText(Factory.getInstance().getBusNumber(persistenceManager.getSelectedBus()));
+                                ApiClient.getInstance().getBusSchedule(MapsActivity.this, persistenceManager.getBusName());
+                                tvSelectedBus.setText(Factory.getInstance().getBusNumber(persistenceManager.getBusName()));
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -634,7 +642,7 @@ public class MapsActivity extends AppCompatActivity
                 new AlertDialog.Builder(MapsActivity.this)
                         .setTitle(getString(R.string.dialog_orar_complet) + " " +
                                 Factory.getInstance().getBusNumber(
-                                        PersistenceManager.getInstance().getSelectedBus()
+                                        persistenceManager.getBusName()
                                 )
                         )
                         .setView(busTimesContainer)
@@ -678,18 +686,17 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
 
-        PersistenceManager persistenceManager = PersistenceManager.getInstance();
+        PersistenceManager persistenceManager = PersistenceManager.getInstance(MapsActivity.this);
         persistenceManager.saveData(this);
 
         int widgetId = persistenceManager.getWidgetId(MapsActivity.this);
         if(widgetId > 0) {
             //update widget
-
             RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.widget);
 
             remoteViews.setTextViewText(
                     R.id.tv_widget_bus,
-                    Factory.getInstance().getBusNumber(persistenceManager.getSelectedBus())
+                    Factory.getInstance().getBusNumber(persistenceManager.getBusName())
             );
             remoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, capat1Title);
             remoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, capat2Title);
@@ -701,7 +708,9 @@ public class MapsActivity extends AppCompatActivity
                     R.id.tv_widget_times_capat_2,
                     Factory.getInstance().getPlecariAtThisHour(plecariCapat2)
             );
-
+            Intent intent = new Intent(this, MapsActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+            remoteViews.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
             AppWidgetManager.getInstance(MapsActivity.this).updateAppWidget(
                     widgetId,
                     remoteViews

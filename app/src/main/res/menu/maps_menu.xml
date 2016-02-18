@@ -22,4 +22,8 @@
     <item
         android:id="@+id/overall_stats"
         android:title="@string/options_menu_overall_stats"/>
+
+    <item
+        android:id="@+id/widget_refresh_interval"
+        android:title="@string/options_menu_widget_interval"/>
 </menu>

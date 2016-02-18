@@ -5,16 +5,9 @@ import android.util.Log;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.json.JSONObject;
-
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Doru on 19/11/15.
@@ -48,7 +41,7 @@ public class ApiClient {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
 
-                caller.onApiCallSuccessStations(Factory.getInstance().factorizeResponse(response));
+                caller.onSuccessBikeStations(Factory.getInstance().factorizeResponse(response));
 
             }
 
@@ -71,8 +64,7 @@ public class ApiClient {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
 
-                HashMap<String, ArrayList<String>> leavingMinutes = Factory.getInstance().readCsv(new ByteArrayInputStream(binaryData));
-                caller.onApiCallSuccessBusLeaving(leavingMinutes);
+                caller.onSuccessBusTimes(binaryData);
             }
 
             @Override

@@ -7,6 +7,4 @@
     <dimen name="widget_height">60dp</dimen>
     <dimen name="widget_width">240dp</dimen>
 
-    <!--<integer name="widget_refresh_interval">3600000</integer>-->
-    <integer name="widget_refresh_interval">60000</integer>
 </resources>

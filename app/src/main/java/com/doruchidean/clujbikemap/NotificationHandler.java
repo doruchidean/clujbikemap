@@ -42,6 +42,6 @@ public class NotificationHandler extends BroadcastReceiver{
                             Notification.PRIORITY_HIGH;
         notificationManager.notify(0, notification);
 
-        PersistenceManager.getInstance().setIsCountingDown(false);
+        PersistenceManager.getInstance(context).setIsCountingDown(false);
     }
 }

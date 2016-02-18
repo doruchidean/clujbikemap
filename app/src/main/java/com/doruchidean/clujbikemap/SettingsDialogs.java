@@ -1,11 +1,14 @@
 package com.doruchidean.clujbikemap;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -22,6 +25,8 @@ public class SettingsDialogs {
 
     private static SettingsDialogs ourInstance;
     private int overallBikes, overallSpots, overallTotal;
+    private String[] pickerDisplayedValues =
+            new String[]{"30 min", "45 min", "60 min", "4 hours", "8 hours", "12 hours", "24 hours"};
 
     private SettingsDialogs(){
     }
@@ -78,10 +83,10 @@ public class SettingsDialogs {
 
     public void showMarginsDialog(final Context context, final Callbacks.SettingsDialogsCallback caller) {
 
-        final PersistenceManager values = PersistenceManager.getInstance();
+        final PersistenceManager pm = PersistenceManager.getInstance(context);
 
-        final int mColdLimit = values.getColdLimit();
-        final int mHotLimit = values.getHotLimit();
+        final int mColdLimit = pm.getColdLimit();
+        final int mHotLimit = pm.getHotLimit();
 
         View dialogContainer = View.inflate(context, R.layout.dialog_margings, null);
 
@@ -103,8 +108,8 @@ public class SettingsDialogs {
         rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
             @Override
             public void onIndexChangeListener(RangeBar rangeBar, int i, int i1) {
-                values.setColdLimit(i);
-                values.setHotLimit(hypotheticalRange - i1);
+                pm.setColdLimit(i);
+                pm.setHotLimit(hypotheticalRange - i1);
 
                 tvColdMargin.setText(String.format("%s %s", context.getString(R.string.dialog_margins_cold), i));
                 tvHotMargin.setText(String.format("%s %s", context.getString(R.string.dialog_margins_hot), hypotheticalRange - i1));
@@ -130,12 +135,14 @@ public class SettingsDialogs {
 
     }
 
-    public void updateOverallStats(ArrayList<StationsModel> stations){
+    public void updateOverallStats(Context context, ArrayList<StationsModel> stations){
+        PersistenceManager pm = PersistenceManager.getInstance(context);
+
         for (StationsModel s : stations) {
             overallBikes += s.ocuppiedSpots;
             overallSpots += s.emptySpots;
             overallTotal += s.maximumNumberOfBikes;
-            s.isFavourite = PersistenceManager.getInstance().isFavourite(s.stationName);
+            s.isFavourite = pm.isFavourite(s.stationName);
         }
     }
 
@@ -167,14 +174,16 @@ public class SettingsDialogs {
 
     public void showTimerLimitDialog(Context context){
 
-        final int[] timerLimit = {1};
+        final PersistenceManager persistenceManager = PersistenceManager.getInstance(context);
+        final int[] timerLimit = {persistenceManager.getTimerMinutes()};
 
         View dialogContainer = View.inflate(context, R.layout.dialog_timer_limit, null);
 
         NumberPicker picker = (NumberPicker) dialogContainer.findViewById(R.id.picker_dialog_timer);
         picker.setMinValue(1);
-        picker.setMaxValue(12 * 60);
-        picker.setValue(PersistenceManager.getInstance().getTimerMinutes());
+        picker.setMaxValue(pickerDisplayedValues.length);
+        picker.setDisplayedValues(pickerDisplayedValues);
+        picker.setValue(persistenceManager.getTimerMinutes());
         picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
@@ -190,12 +199,59 @@ public class SettingsDialogs {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        PersistenceManager.getInstance().setTimerMinutes(timerLimit[0]);
+                        persistenceManager.setTimerMinutes(timerLimit[0]);
 
                         dialog.dismiss();
                     }
                 });
         dialog = builder.create();
         dialog.show();
+    }
+
+    public void showWidgetUpdateTimeDialog(final Context context) {
+
+        final PersistenceManager persistenceManager = PersistenceManager.getInstance(context);
+        final int[] updateTime = {persistenceManager.getWidgetUpdateInterval()};
+
+        View dialogContainer = View.inflate(context, R.layout.dialog_widget_update_time, null);
+        NumberPicker picker = (NumberPicker) dialogContainer.findViewById(R.id.picker_dialog_widget_time);
+        picker.setMinValue(1);
+        picker.setMaxValue(pickerDisplayedValues.length);
+        picker.setValue(updateTime[0]);
+        picker.setDisplayedValues(pickerDisplayedValues);
+        picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                updateTime[0] = newVal;
+            }
+        });
+
+        new AlertDialog.Builder(context)
+                .setView(dialogContainer)
+                .setCancelable(true)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        //set an alarm to update the widget regularly
+                        AlarmManager alarmManager =
+                                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                        Intent intent = new Intent(context, ClujBikeMapWidgetProvider.class);
+                        PendingIntent pendingIntent= PendingIntent.getBroadcast(
+                                context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                        alarmManager.setInexactRepeating(
+                                AlarmManager.ELAPSED_REALTIME,
+                                SystemClock.elapsedRealtime(),
+                                Factory.getInstance().getMinutesForDisplayedValue(updateTime[0])*1000,
+                                pendingIntent
+                        );
+
+                        persistenceManager.setWidgetUpdateInterval(updateTime[0]);
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
     }
 }

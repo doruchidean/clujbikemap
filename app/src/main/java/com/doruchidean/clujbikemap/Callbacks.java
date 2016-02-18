@@ -10,8 +10,8 @@ import java.util.HashMap;
 public interface Callbacks {
 
     interface ApiCallbacks{
-        void onApiCallSuccessStations(ArrayList<StationsModel> stationsArray);
-        void onApiCallSuccessBusLeaving(HashMap<String, ArrayList<String>> leavingTimes);
+        void onSuccessBikeStations(ArrayList<StationsModel> stationsArray);
+        void onSuccessBusTimes(byte[] rawData);
         void onApiCallFail(String error);
     }
 
