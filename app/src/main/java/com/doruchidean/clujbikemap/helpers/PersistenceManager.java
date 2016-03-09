@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -29,20 +29,23 @@ public class PersistenceManager {
             BUSES="buses",
             WIDGET_ID="widgetid",
             BUS_SCHEDULE = "busschedule",
-            WIDGET_UPDATE_INTERVAL="widgetupdateinterval";
+            WIDGET_UPDATE_INTERVAL="widgetupdateinterval",
+            SHOW_BUS_BAR="showbusbar";
 
     //values that need to be saved and loaded
     private ArrayList<String> favouriteStations=new ArrayList<>();
 
     private boolean
             showFavouritesOnly,
-            mIsCountingDown;
+            mIsCountingDown,
+            mShowBusBar;
 
     private int
             mColdLimit,
             mHotLimit,
             mTimerMinutes,
-            mWidgetUpdateInterval;
+            mWidgetUpdateInterval,
+            mWidgetId;
 
     private String mBusName;
 
@@ -64,6 +67,8 @@ public class PersistenceManager {
         mTimerMinutes = sp.getInt(TIMER_MINUTES, 45);
         mBusName = sp.getString(BUSES, "");
         mWidgetUpdateInterval = sp.getInt(WIDGET_UPDATE_INTERVAL, 3);
+        mShowBusBar = sp.getBoolean(SHOW_BUS_BAR, true);
+        mWidgetId = sp.getInt(WIDGET_ID, 0);
     }
 
     public void saveData(Context context){
@@ -83,6 +88,8 @@ public class PersistenceManager {
         editor.putBoolean(IS_COUNTING_DOWN, mIsCountingDown);
         editor.putString(BUSES, mBusName);
         editor.putInt(WIDGET_UPDATE_INTERVAL, mWidgetUpdateInterval);
+        editor.putBoolean(SHOW_BUS_BAR, mShowBusBar);
+        editor.putInt(WIDGET_ID, mWidgetId);
 
         editor.apply();
     }
@@ -91,13 +98,13 @@ public class PersistenceManager {
         if(mInstance == null){
             mInstance = new PersistenceManager(context);
         }
-
         return mInstance;
     }
 
     public void addFavouriteStation(String stationName){
         favouriteStations.add(stationName);
     }
+
     public void removeFavouriteStation(String stationName){
         favouriteStations.remove(stationName);
     }
@@ -161,20 +168,13 @@ public class PersistenceManager {
         this.mBusName = busName;
     }
 
-    public int getWidgetId(Context context) {
+    public int getWidgetId() {
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-
-        return  sp.getInt(WIDGET_ID, 0);
+        return mWidgetId;
     }
 
-    public void setWidgetId(Context context, int mWidgetId) {
-
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = sp.edit();
-
-        editor.putInt(WIDGET_ID, mWidgetId);
-        editor.apply();
+    public void setWidgetId(int widgetId) {
+        mWidgetId = widgetId;
     }
 
     public void setBusSchedule(Context context, byte[] binaryData) {
@@ -202,5 +202,13 @@ public class PersistenceManager {
 
     public int getWidgetUpdateInterval() {
         return mWidgetUpdateInterval;
+    }
+
+    public boolean getShowBusBar() {
+        return mShowBusBar;
+    }
+
+    public void setShowBusBar(boolean showBusBar) {
+        this.mShowBusBar = showBusBar;
     }
 }

@@ -1,4 +1,8 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
+
+import android.util.Log;
+
+import com.doruchidean.clujbikemap.models.BikeStations;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,10 +40,10 @@ public class Factory {
     private Factory() {
     }
 
-    public ArrayList<StationsModel> factorizeResponse(JSONObject response){
+    public ArrayList<BikeStations> factorizeResponse(JSONObject response){
 
         JSONArray array;
-        ArrayList<StationsModel> stationsArray = new ArrayList<>();
+        ArrayList<BikeStations> stationsArray = new ArrayList<>();
         try {
             array = response.getJSONArray("Data");
 
@@ -47,7 +51,7 @@ public class Factory {
 
                 JSONObject j = array.optJSONObject(i);
 
-                StationsModel s = new StationsModel();
+                BikeStations s = new BikeStations();
 
                 s.stationName = j.getString("StationName");
                 s.address = j.getString("Address");
@@ -214,16 +218,25 @@ public class Factory {
         return resultList;
     }
 
-    public int getMinutesForDisplayedValue(int i){
-        switch (i){
-            case(1): return 30;
-            case(2): return 45;
-            case(3): return 60;
-            case(4): return 4*60;
-            case(5): return 8*60;
-            case(6): return 12*60;
-            case(7): return 24*60;
-            default: return 30;
+    public int getMillisForDisplayedValue(int pickerVal){
+        int result;
+
+        if(pickerVal == 2){
+            result = 45;
+        }else if(pickerVal == 3){
+            result = 60;
+        }else if(pickerVal == 4){
+            result = 4*60;
+        }else if(pickerVal == 5){
+            result = 8*60;
+        }else if(pickerVal == 6){
+            result = 12*60;
+        }else if(pickerVal == 7){
+            result = 24*60;
+        }else{
+            result = 30;
         }
+
+        return result*60*1000;
     }
 }

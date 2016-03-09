@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.activities;
 
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -18,6 +18,7 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +33,15 @@ import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.doruchidean.clujbikemap.helpers.ApiClient;
+import com.doruchidean.clujbikemap.adapters.BusListAdapter;
+import com.doruchidean.clujbikemap.helpers.Callbacks;
+import com.doruchidean.clujbikemap.helpers.Factory;
+import com.doruchidean.clujbikemap.helpers.NotificationHandler;
+import com.doruchidean.clujbikemap.helpers.PersistenceManager;
+import com.doruchidean.clujbikemap.R;
+import com.doruchidean.clujbikemap.helpers.SettingsDialogs;
+import com.doruchidean.clujbikemap.models.BikeStations;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -55,7 +65,7 @@ public class MapsActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener, Callbacks.ApiCallbacks, Callbacks.SettingsDialogsCallback, View.OnClickListener {
 
     private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
-    private ArrayList<StationsModel> mStationsArray = new ArrayList<>();
+    private ArrayList<BikeStations> mStationsArray = new ArrayList<>();
     private ArrayList<String> plecariCapat1 = new ArrayList<>();
     private ArrayList<String> plecariCapat2 = new ArrayList<>();
     private String capat1Title, capat2Title;
@@ -67,6 +77,7 @@ public class MapsActivity extends AppCompatActivity
     private ImageButton btnShowFavourites, btnTimer;
     private TextView tvBusCapat1, tvBusCapat2, tvSelectedBus;
     private LinearLayout llTimesLeft, llTimesRight;
+    private LinearLayout mBusBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +96,12 @@ public class MapsActivity extends AppCompatActivity
         tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
         llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
         llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
+        mBusBar = (LinearLayout) findViewById(R.id.bus_bar);
+        mBusBar.setVisibility(
+                PersistenceManager.getInstance(MapsActivity.this).getShowBusBar() ?
+                        View.VISIBLE:
+                        View.INVISIBLE
+        );
 
     }
 
@@ -214,7 +231,7 @@ public class MapsActivity extends AppCompatActivity
 
         for (int i = 0; i < mStationsArray.size(); i++) {
 
-            StationsModel station = mStationsArray.get(i);
+            BikeStations station = mStationsArray.get(i);
 
             markerOptions = new MarkerOptions();
             markerOptions.position(new LatLng(station.latitude, station.longitude));
@@ -262,7 +279,7 @@ public class MapsActivity extends AppCompatActivity
         });
     }
 
-    private StationsModel binarySearchStation(String markerTitleToFind){
+    private BikeStations binarySearchStation(String markerTitleToFind){
 
         int lowEnd = 0;
         int highEnd = mStationsArray.size()-1;
@@ -288,7 +305,7 @@ public class MapsActivity extends AppCompatActivity
 
     private void onMarkerClickFunction(final Marker marker){
 
-        final StationsModel station = binarySearchStation(marker.getTitle());
+        final BikeStations station = binarySearchStation(marker.getTitle());
         final PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
 
         if(station == null){
@@ -342,7 +359,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void hideNonFavouriteMarkers(PersistenceManager pm){
-        StationsModel matchingStation;
+        BikeStations matchingStation;
         for(MarkerOptions m : mapMarkers){
             matchingStation = binarySearchStation(m.getTitle());
             if(matchingStation != null) {
@@ -391,6 +408,10 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.maps_menu, menu);
+
+        //show_bus_bar button
+        menu.getItem(6).setChecked(PersistenceManager.getInstance(MapsActivity.this).getShowBusBar());
+
         return true;
     }
 
@@ -418,9 +439,20 @@ public class MapsActivity extends AppCompatActivity
             case R.id.widget_refresh_interval:
                 SettingsDialogs.getInstance().showWidgetUpdateTimeDialog(MapsActivity.this);
                 break;
+            case R.id.show_bus_bar:
+                onShowBusBarClicked(item);
+                break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void onShowBusBarClicked(MenuItem item){
+        PersistenceManager.getInstance(MapsActivity.this).setShowBusBar(!item.isChecked());
+
+        mBusBar.setVisibility(!item.isChecked() ? View.VISIBLE : View.INVISIBLE);
+
+        item.setChecked(!item.isChecked());
     }
 
     @Override
@@ -434,7 +466,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSuccessBikeStations(ArrayList<StationsModel> stationsArray) {
+    public void onSuccessBikeStations(ArrayList<BikeStations> stationsArray) {
         this.mStationsArray = stationsArray;
         Collections.sort(this.mStationsArray);
 
@@ -554,7 +586,7 @@ public class MapsActivity extends AppCompatActivity
 
                 if (!persistenceManager.getIsCountingDown()) {
 
-                    int minutes = Factory.getInstance().getMinutesForDisplayedValue(persistenceManager.getTimerMinutes());
+                    int minutes = Factory.getInstance().getMillisForDisplayedValue(persistenceManager.getTimerMinutes());
                     long alarmTime = SystemClock.elapsedRealtime()
                             + 1000 * 60 * minutes;
 
@@ -689,14 +721,15 @@ public class MapsActivity extends AppCompatActivity
         PersistenceManager persistenceManager = PersistenceManager.getInstance(MapsActivity.this);
         persistenceManager.saveData(this);
 
-        int widgetId = persistenceManager.getWidgetId(MapsActivity.this);
-        if(widgetId > 0) {
-            //update widget
+        //update widget if any
+        int widgetId = persistenceManager.getWidgetId();
+        String busName = persistenceManager.getBusName();
+        if(widgetId > 0 && busName.length() >0) {
             RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.widget);
 
             remoteViews.setTextViewText(
                     R.id.tv_widget_bus,
-                    Factory.getInstance().getBusNumber(persistenceManager.getBusName())
+                    Factory.getInstance().getBusNumber(busName)
             );
             remoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, capat1Title);
             remoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, capat2Title);
@@ -715,8 +748,14 @@ public class MapsActivity extends AppCompatActivity
                     widgetId,
                     remoteViews
             );
+
+            trace("widget updated in onDestroy maps activity");
         }
         super.onDestroy();
+    }
+
+    public static void trace(String s){
+        Log.d("traces", s);
     }
 
 }

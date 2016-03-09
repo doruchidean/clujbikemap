@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.doruchidean.clujbikemap.R;
+import com.doruchidean.clujbikemap.activities.MapsActivity;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,31 +18,41 @@ import java.util.HashMap;
  * Created by Doru on 15/02/16.
  *
  */
-public class ClujBikeMapWidgetProvider extends AppWidgetProvider {
+public class WidgetProvider extends AppWidgetProvider {
 
     private RemoteViews mRemoteViews;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-//
+
         PersistenceManager pm = PersistenceManager.getInstance(context);
-//        this.mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.widget);
-//
+
         //manually handle the widget id
-        pm.setWidgetId(context, appWidgetIds[0]);
-//
+        pm.setWidgetId(appWidgetIds[0]);
+        pm.saveData(context);
+
         Log.d("traces", "onUpdate");
-//        if (pm.getBusName()!=null && pm.getBusName().length()>0) {
-//            updateTexts(pm.getBusSchedule(context));
-//        }
-//
-//        Intent intent = new Intent(context, MapsActivity.class);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-//        mRemoteViews.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
-//
-//        appWidgetManager.updateAppWidget(appWidgetIds[0], mRemoteViews);
-//
-//        super.onUpdate(context, appWidgetManager, appWidgetIds);
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+
+        //start alarm service to update the widget regularly
+        SettingsDialogs.getInstance().setAlarmForWidgetUpdate(
+                context,
+                Factory.getInstance().getMillisForDisplayedValue(
+                        PersistenceManager.getInstance(context).getWidgetUpdateInterval()
+                )
+        );
+
+        Log.d("traces", "widget onEnabled");
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        //prevents the app to try and update the widget when is gone
+        PersistenceManager.getInstance(context).setWidgetId(0);
     }
 
     @Override
@@ -47,11 +60,11 @@ public class ClujBikeMapWidgetProvider extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         PersistenceManager persistenceManager = PersistenceManager.getInstance(context);
-        int widgetId = persistenceManager.getWidgetId(context);
+        int widgetId = persistenceManager.getWidgetId();
 
         Log.d("traces", "widgetProvider onReceive " + widgetId);
 
-        if(widgetId>0) {
+        if(widgetId > 0) {
             mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.widget);
 
             updateTexts(persistenceManager.getBusSchedule(context), persistenceManager.getBusName());
@@ -65,13 +78,13 @@ public class ClujBikeMapWidgetProvider extends AppWidgetProvider {
                     mRemoteViews
             );
 
-            Log.d("traces", "widget updated " + widgetId);
+            Log.d("traces", "widget visible: id " + widgetId);
         }
     }
 
     public void updateTexts(byte[] rawData, String busName) {
 
-        if(rawData == null) return;
+        if(rawData == null || busName.length() == 0) return;
 
         Factory factory = Factory.getInstance();
 

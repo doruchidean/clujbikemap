@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
 
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -9,10 +9,13 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 
+import com.doruchidean.clujbikemap.R;
+import com.doruchidean.clujbikemap.models.BikeStations;
 import com.edmodo.rangebar.RangeBar;
 
 import java.util.ArrayList;
@@ -135,10 +138,10 @@ public class SettingsDialogs {
 
     }
 
-    public void updateOverallStats(Context context, ArrayList<StationsModel> stations){
+    public void updateOverallStats(Context context, ArrayList<BikeStations> stations){
         PersistenceManager pm = PersistenceManager.getInstance(context);
 
-        for (StationsModel s : stations) {
+        for (BikeStations s : stations) {
             overallBikes += s.ocuppiedSpots;
             overallSpots += s.emptySpots;
             overallTotal += s.maximumNumberOfBikes;
@@ -233,18 +236,9 @@ public class SettingsDialogs {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        //set an alarm to update the widget regularly
-                        AlarmManager alarmManager =
-                                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                        Intent intent = new Intent(context, ClujBikeMapWidgetProvider.class);
-                        PendingIntent pendingIntent= PendingIntent.getBroadcast(
-                                context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                        alarmManager.setInexactRepeating(
-                                AlarmManager.ELAPSED_REALTIME,
-                                SystemClock.elapsedRealtime(),
-                                Factory.getInstance().getMinutesForDisplayedValue(updateTime[0])*1000,
-                                pendingIntent
+                        setAlarmForWidgetUpdate(
+                                context,
+                                Factory.getInstance().getMillisForDisplayedValue(updateTime[0])
                         );
 
                         persistenceManager.setWidgetUpdateInterval(updateTime[0]);
@@ -253,5 +247,23 @@ public class SettingsDialogs {
                 })
                 .create()
                 .show();
+    }
+
+    public void setAlarmForWidgetUpdate(Context context, int intervalMillis){
+        //set an alarm to update the widget regularly
+        AlarmManager alarmManager =
+                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, WidgetProvider.class);
+        PendingIntent pendingIntent= PendingIntent.getBroadcast(
+                context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        alarmManager.setInexactRepeating(
+                AlarmManager.ELAPSED_REALTIME,
+                SystemClock.elapsedRealtime(),
+                intervalMillis,
+                pendingIntent
+        );
+
+        Log.d("traces", "alarmManager created: " + intervalMillis);
     }
 }

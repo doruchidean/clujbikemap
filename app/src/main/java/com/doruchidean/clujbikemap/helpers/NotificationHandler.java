@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
 
 import android.app.Activity;
 import android.app.Notification;
@@ -9,6 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.NotificationCompat;
+
+import com.doruchidean.clujbikemap.R;
+import com.doruchidean.clujbikemap.activities.MapsActivity;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;

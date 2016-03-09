@@ -1,7 +1,8 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
+
+import com.doruchidean.clujbikemap.models.BikeStations;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Doru on 19/11/15.
@@ -10,7 +11,7 @@ import java.util.HashMap;
 public interface Callbacks {
 
     interface ApiCallbacks{
-        void onSuccessBikeStations(ArrayList<StationsModel> stationsArray);
+        void onSuccessBikeStations(ArrayList<BikeStations> stationsArray);
         void onSuccessBusTimes(byte[] rawData);
         void onApiCallFail(String error);
     }

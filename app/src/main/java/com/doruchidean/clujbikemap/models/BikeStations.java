@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.models;
 
 import android.support.annotation.NonNull;
 
@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
  * Created by Doru on 28/08/15.
  *
  */
-public class StationsModel implements Comparable<StationsModel>{
+public class BikeStations implements Comparable<BikeStations>{
 
     public String address, lastSyncDate, stationName, stationStatus, statusType;
     public boolean customIsValid, isValid, isFavourite;
@@ -14,7 +14,7 @@ public class StationsModel implements Comparable<StationsModel>{
     public double latitude, longitude;
 
     @Override
-    public int compareTo(@NonNull StationsModel another) {
+    public int compareTo(@NonNull BikeStations another) {
         return stationName.compareToIgnoreCase(another.stationName);
     }
 }

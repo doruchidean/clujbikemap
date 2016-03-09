@@ -2,13 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapsActivity">
+    tools:context=".activities.MapsActivity">
 
     <fragment android:id="@+id/map"
-        android:layout_height="fill_parent"
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_above="@+id/bus_bar"/>
+        android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
     <ImageButton android:id="@+id/btn_show_favourites"
         android:onClick="onClick"
@@ -30,7 +29,7 @@
         android:layout_toStartOf="@id/btn_show_favourites"
         android:layout_marginTop="5dp"/>
 
-    <LinearLayout android:id="@id/bus_bar"
+    <LinearLayout android:id="@+id/bus_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

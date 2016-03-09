@@ -1,4 +1,4 @@
-package com.doruchidean.clujbikemap;
+package com.doruchidean.clujbikemap.helpers;
 
 import android.util.Log;
 
@@ -34,8 +34,6 @@ public class ApiClient {
     }
 
     public void getStations(final Callbacks.ApiCallbacks caller){
-
-        Log.d("traces", "updating info");
 
         mClient.post(baseUrl + getStations, new JsonHttpResponseHandler() {
             @Override

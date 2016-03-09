@@ -26,4 +26,8 @@
     <item
         android:id="@+id/widget_refresh_interval"
         android:title="@string/options_menu_widget_interval"/>
+    <item
+        android:id="@+id/show_bus_bar"
+        android:title="@string/options_menu_show_bus_bar_label"
+        android:checkable="true"/>
 </menu>
