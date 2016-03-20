@@ -15,7 +15,7 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import com.doruchidean.clujbikemap.R;
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
 import com.edmodo.rangebar.RangeBar;
 
 import java.util.ArrayList;
@@ -128,7 +128,7 @@ public class SettingsDialogs {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        caller.setUpMap();
+                        caller.setMapMarkers();
 
                         dialog.dismiss();
                     }
@@ -138,10 +138,10 @@ public class SettingsDialogs {
 
     }
 
-    public void updateOverallStats(Context context, ArrayList<BikeStations> stations){
+    public void updateOverallStats(Context context, ArrayList<BikeStation> stations){
         PersistenceManager pm = PersistenceManager.getInstance(context);
 
-        for (BikeStations s : stations) {
+        for (BikeStation s : stations) {
             overallBikes += s.ocuppiedSpots;
             overallSpots += s.emptySpots;
             overallTotal += s.maximumNumberOfBikes;

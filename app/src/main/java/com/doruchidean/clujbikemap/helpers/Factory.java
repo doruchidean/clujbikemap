@@ -1,8 +1,9 @@
 package com.doruchidean.clujbikemap.helpers;
 
-import android.util.Log;
+import android.content.Context;
 
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
+import com.doruchidean.clujbikemap.models.BusStation;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,6 +17,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Doru on 19/11/15.
@@ -40,10 +42,72 @@ public class Factory {
     private Factory() {
     }
 
-    public ArrayList<BikeStations> factorizeResponse(JSONObject response){
+    public String loadJSONFromAsset(Context context) {
+        String json;
+        try {
+
+            InputStream is = context.getAssets().open("statii_bus.json");
+
+            int size = is.available();
+
+            byte[] buffer = new byte[size];
+
+            is.read(buffer);
+
+            is.close();
+
+            json = new String(buffer, "UTF-8");
+
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
+
+    }
+
+    public ArrayList<BusStation> getBusStations(Context context){
+
+        ArrayList<BusStation> result = new ArrayList<>();
+
+        try {
+            JSONObject jsonContainer = new JSONObject(loadJSONFromAsset(context));
+            JSONArray busStationsArray = jsonContainer.getJSONArray("statii");
+            JSONArray liniiPerBusStation;
+            BusStation busStation;
+
+            for(int i=0; i<busStationsArray.length(); i++){
+                JSONObject busStationObject = busStationsArray.getJSONObject(i);
+                liniiPerBusStation = busStationObject.getJSONArray("linii");
+                List<String> linii = new ArrayList<>();
+                for(int j=0; j<liniiPerBusStation.length(); j++){
+                    linii.add(liniiPerBusStation.getString(j).replace("orar_", ""));
+                }
+
+                busStation = new BusStation(
+                        busStationObject.getInt("statie"),
+                        busStationObject.getString("denst"),
+                        busStationObject.getDouble("lat"),
+                        busStationObject.getDouble("lng"),
+                        busStationObject.getString("tip"),
+                        linii
+                );
+
+                result.add(busStation);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    public ArrayList<BikeStation> factorizeResponse(JSONObject response){
 
         JSONArray array;
-        ArrayList<BikeStations> stationsArray = new ArrayList<>();
+        ArrayList<BikeStation> stationsArray = new ArrayList<>();
         try {
             array = response.getJSONArray("Data");
 
@@ -51,7 +115,7 @@ public class Factory {
 
                 JSONObject j = array.optJSONObject(i);
 
-                BikeStations s = new BikeStations();
+                BikeStation s = new BikeStation();
 
                 s.stationName = j.getString("StationName");
                 s.address = j.getString("Address");

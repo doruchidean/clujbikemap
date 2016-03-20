@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
  * Created by Doru on 28/08/15.
  *
  */
-public class BikeStations implements Comparable<BikeStations>{
+public class BikeStation implements Comparable<BikeStation>{
 
     public String address, lastSyncDate, stationName, stationStatus, statusType;
     public boolean customIsValid, isValid, isFavourite;
@@ -14,7 +14,7 @@ public class BikeStations implements Comparable<BikeStations>{
     public double latitude, longitude;
 
     @Override
-    public int compareTo(@NonNull BikeStations another) {
+    public int compareTo(@NonNull BikeStation another) {
         return stationName.compareToIgnoreCase(another.stationName);
     }
 }

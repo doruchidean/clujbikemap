@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -30,6 +32,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RemoteViews;
+import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +44,8 @@ import com.doruchidean.clujbikemap.helpers.NotificationHandler;
 import com.doruchidean.clujbikemap.helpers.PersistenceManager;
 import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.helpers.SettingsDialogs;
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
+import com.doruchidean.clujbikemap.models.BusStation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -54,54 +58,66 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity extends AppCompatActivity
-        implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, Callbacks.ApiCallbacks, Callbacks.SettingsDialogsCallback, View.OnClickListener {
+        implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        Callbacks.ApiCallbacks,
+        Callbacks.SettingsDialogsCallback,
+        View.OnClickListener {
 
-    private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
-    private ArrayList<BikeStations> mStationsArray = new ArrayList<>();
-    private ArrayList<String> plecariCapat1 = new ArrayList<>();
-    private ArrayList<String> plecariCapat2 = new ArrayList<>();
+    private final String TAB_ONE = "Tab 1", TAB_TWO = "Tab 2";
+
+    private ArrayList<MarkerOptions> mBusStationMarkers = new ArrayList<>();
+    private ArrayList<BusStation> mBusStationsArray = new ArrayList<>();
+    private ArrayList<MarkerOptions> bikeStationMarkers = new ArrayList<>();
+    private ArrayList<BikeStation> mBikeStationsArray = new ArrayList<>();
+    private ArrayList<String> plecariCapat1 = new ArrayList<>(), plecariCapat2 = new ArrayList<>();
+
     private String capat1Title, capat2Title;
-
-    private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
     private double userLatitude = 46.775627, userLongitude = 23.590935;
+    private GoogleMap mBikeMap, mBusMap;
 
+    private GoogleApiClient mGoogleApiClient;
     private ImageButton btnShowFavourites, btnTimer;
     private TextView tvBusCapat1, tvBusCapat2, tvSelectedBus;
     private LinearLayout llTimesLeft, llTimesRight;
     private LinearLayout mBusBar;
+    private TabHost mTabHost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         setContentView(R.layout.activity_maps);
+        grabViews();
 
-        btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
-        btnTimer = (ImageButton) findViewById(R.id.btn_timer);
-        tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
-        tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
-        tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
-        llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
-        llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
-        mBusBar = (LinearLayout) findViewById(R.id.bus_bar);
-        mBusBar.setVisibility(
-                PersistenceManager.getInstance(MapsActivity.this).getShowBusBar() ?
-                        View.VISIBLE:
-                        View.INVISIBLE
-        );
+        mTabHost = (TabHost) findViewById(R.id.tab_host);
+        mTabHost.setup();
+        mTabHost.setOnTabChangedListener(onTabChangedListener);
+
+        TabHost.TabSpec tab1 = mTabHost.newTabSpec(TAB_ONE);
+        tab1.setContent(R.id.bike_map_container);
+        tab1.setIndicator("Bike Map");
+        mTabHost.addTab(tab1);
+
+        TabHost.TabSpec tab2 = mTabHost.newTabSpec(TAB_TWO);
+        tab2.setContent(R.id.bus_map_container);
+        tab2.setIndicator("Bus Map");
+        mTabHost.addTab(tab2);
+
+        mBusStationsArray = Factory.getInstance().getBusStations(MapsActivity.this);
+
+        searchAdress("str Tulcea nr 20");
 
     }
 
@@ -123,12 +139,35 @@ public class MapsActivity extends AppCompatActivity
             ApiClient.getInstance().getBusSchedule(MapsActivity.this, pm.getBusName());
         }
 
-        setUpMapIfNeeded();
+        setUpMapIfNeeded(mTabHost.getCurrentTabTag());
 
         buildGoogleApiClient();
 
         refreshUIButtons();
     }
+
+    private void grabViews() {
+        btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
+        btnTimer = (ImageButton) findViewById(R.id.btn_timer);
+        tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
+        tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
+        tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
+        llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
+        llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
+        mBusBar = (LinearLayout) findViewById(R.id.bus_bar);
+        mBusBar.setVisibility(
+                PersistenceManager.getInstance(MapsActivity.this).getShowBusBar() ?
+                        View.VISIBLE :
+                        View.INVISIBLE
+        );
+    }
+
+    private TabHost.OnTabChangeListener onTabChangedListener = new TabHost.OnTabChangeListener() {
+        @Override
+        public void onTabChanged(String tabTag) {
+            setUpMapIfNeeded(tabTag);
+        }
+    };
 
     private void refreshUIButtons(){
         PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
@@ -196,7 +235,7 @@ public class MapsActivity extends AppCompatActivity
             userLongitude = lastLocation.getLongitude();
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
+        mBikeMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -211,27 +250,45 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            // Try to obtain the map from the SupportMapFragment.
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
-                setUpMap();
-            }
+    private void setUpMapIfNeeded(String tabTag) {
+
+        switch (tabTag){
+            case (TAB_ONE):
+
+                if (mBikeMap == null) {
+                    mBikeMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.bike_map))
+                            .getMap();
+                    if (mBikeMap != null) {
+                        mBikeMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
+                        setMapMarkers();
+                    }
+                }
+
+                break;
+            case (TAB_TWO):
+
+                if (mBusMap == null) {
+                    mBusMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.bus_map))
+                            .getMap();
+                    if (mBusMap!= null) {
+                        mBusMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
+                        setBusMapMarkers("101"); //todo replace with selected bus line
+                    }
+                }
+
+                break;
         }
+
     }
 
     private void createMarkers(){
         MarkerOptions markerOptions;
         PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
 
-        for (int i = 0; i < mStationsArray.size(); i++) {
+        //set the bike stations markers
+        for (int i = 0; i < mBikeStationsArray.size(); i++) {
 
-            BikeStations station = mStationsArray.get(i);
+            BikeStation station = mBikeStationsArray.get(i);
 
             markerOptions = new MarkerOptions();
             markerOptions.position(new LatLng(station.latitude, station.longitude));
@@ -247,7 +304,7 @@ public class MapsActivity extends AppCompatActivity
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_overpopulated));
             }
 
-            mapMarkers.add(markerOptions);
+            bikeStationMarkers.add(markerOptions);
 
         }
 
@@ -255,47 +312,98 @@ public class MapsActivity extends AppCompatActivity
             hideNonFavouriteMarkers(pm);
         }
 
+        //set the bus stations markers
+        for(BusStation busStation : mBusStationsArray){
+
+            markerOptions = new MarkerOptions();
+            markerOptions.position(busStation.getLatLngLocation());
+            markerOptions.title(busStation.getName());
+
+            mBusStationMarkers.add(markerOptions);
+        }
     }
 
     @Override
-    public void setUpMap() {
+    public void setMapMarkers() {
 
-        mMap.clear();
+        mBikeMap.clear();
 
-        for(MarkerOptions m : mapMarkers){
-            mMap.addMarker(m);
+        for(MarkerOptions m : bikeStationMarkers){
+            mBikeMap.addMarker(m);
         }
 
-        mMap.setMyLocationEnabled(true);
+        mBikeMap.setMyLocationEnabled(true);
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+        mBikeMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
 
-                onMarkerClickFunction(marker);
+                onBikeMarkerClickFunction(marker);
 
                 return false;
             }
         });
     }
 
-    private BikeStations binarySearchStation(String markerTitleToFind){
+    private void searchAdress(String address){
+        Geocoder geocoder = new Geocoder(MapsActivity.this, Locale.getDefault());
+        try{
+            List<Address> addresses = geocoder.getFromLocationName(address, 5);
+            if(addresses.size()>0){
+//                Double latitude = addresses.get(0).getLatitude();
+//                Double longitude = addresses.get(0).getLongitude();
+
+            }
+
+            for(Address address1 : addresses){
+                trace("featureName: " + address1.getFeatureName() +
+                        " latitude " + address1.getLatitude() +
+                        " longitude " + address1.getLongitude() +
+                                " locality " + address1.getLocality()
+                );
+            }
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void setBusMapMarkers(String busLine) {
+
+        mBusMap.clear();
+        BusStation busStation;
+
+        for(int i = 0; i < mBusStationsArray.size(); i++) {
+            busStation = mBusStationsArray.get(i);
+
+            if (busStation.getLinii().contains(busLine)) {
+                mBusMap.addMarker(mBusStationMarkers.get(i));
+            }
+        }
+        mBusMap.setMyLocationEnabled(true);
+    }
+
+    private void onBusMarkerClickFunction(Marker marker) {
+        //todo handle on click bus station marker event
+    }
+
+    private BikeStation binarySearchBikeStation(String markerTitleToFind){
 
         int lowEnd = 0;
-        int highEnd = mStationsArray.size()-1;
+        int highEnd = mBikeStationsArray.size()-1;
         int middle, compare;
 
         while (lowEnd <= highEnd){
             middle = (lowEnd+highEnd)/2;
 
-            compare = markerTitleToFind.compareToIgnoreCase(mStationsArray.get(middle).stationName);
+            compare = markerTitleToFind.compareToIgnoreCase(mBikeStationsArray.get(middle).stationName);
 
             if(compare < 0){
                 highEnd = middle-1;
             }else if(compare > 0){
                 lowEnd = middle +1;
             }else{
-               return mStationsArray.get(middle);
+               return mBikeStationsArray.get(middle);
             }
 
         }
@@ -303,9 +411,9 @@ public class MapsActivity extends AppCompatActivity
         return null;
     }
 
-    private void onMarkerClickFunction(final Marker marker){
+    private void onBikeMarkerClickFunction(final Marker marker){
 
-        final BikeStations station = binarySearchStation(marker.getTitle());
+        final BikeStation station = binarySearchBikeStation(marker.getTitle());
         final PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
 
         if(station == null){
@@ -359,9 +467,9 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void hideNonFavouriteMarkers(PersistenceManager pm){
-        BikeStations matchingStation;
-        for(MarkerOptions m : mapMarkers){
-            matchingStation = binarySearchStation(m.getTitle());
+        BikeStation matchingStation;
+        for(MarkerOptions m : bikeStationMarkers){
+            matchingStation = binarySearchBikeStation(m.getTitle());
             if(matchingStation != null) {
                 m.visible(pm.isFavourite(matchingStation.stationName));
             }
@@ -466,14 +574,14 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSuccessBikeStations(ArrayList<BikeStations> stationsArray) {
-        this.mStationsArray = stationsArray;
-        Collections.sort(this.mStationsArray);
+    public void onSuccessBikeStations(ArrayList<BikeStation> stationsArray) {
+        this.mBikeStationsArray = stationsArray;
+        Collections.sort(this.mBikeStationsArray);
 
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
         createMarkers();
-        setUpMap();
-        SettingsDialogs.getInstance().updateOverallStats(MapsActivity.this, mStationsArray);
+        setMapMarkers();
+        SettingsDialogs.getInstance().updateOverallStats(MapsActivity.this, mBikeStationsArray);
     }
 
     @Override
@@ -563,7 +671,7 @@ public class MapsActivity extends AppCompatActivity
                 if(persistenceManager.getShowFavouritesOnly()){
 
                     persistenceManager.setShowFavouritesOnly(false);
-                    for(MarkerOptions m : mapMarkers){
+                    for(MarkerOptions m : bikeStationMarkers){
                         m.visible(true);
                     }
                 }else{
@@ -576,7 +684,7 @@ public class MapsActivity extends AppCompatActivity
                     }
                 }
 
-                setUpMap();
+                setMapMarkers();
                 break;
             case (R.id.btn_timer):
 
@@ -673,9 +781,9 @@ public class MapsActivity extends AppCompatActivity
 
                 new AlertDialog.Builder(MapsActivity.this)
                         .setTitle(getString(R.string.dialog_orar_complet) + " " +
-                                Factory.getInstance().getBusNumber(
-                                        persistenceManager.getBusName()
-                                )
+                                        Factory.getInstance().getBusNumber(
+                                                persistenceManager.getBusName()
+                                        )
                         )
                         .setView(busTimesContainer)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
