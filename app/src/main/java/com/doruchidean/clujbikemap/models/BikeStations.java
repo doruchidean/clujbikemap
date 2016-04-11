@@ -17,4 +17,31 @@ public class BikeStations implements Comparable<BikeStations>{
     public int compareTo(@NonNull BikeStations another) {
         return stationName.compareToIgnoreCase(another.stationName);
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "name: %s, " +
+                "address: %s, " +
+                "lastSyncDate: %s, " +
+                "stationStatus: %s, " +
+                "statusType: %s, " +
+                "isValid: %s, " +
+                "emptySpots: %s, " +
+                "id: %s, " +
+                "idStatus: %s, " +
+                "maxNrOfBikes: %s, " +
+                "occupiedSpots: %s, ",
+                stationName,
+                address,
+                lastSyncDate,
+                stationStatus,
+                statusType,
+                isValid,
+                emptySpots,
+                id,
+                idStatus,
+                maximumNumberOfBikes,
+                ocuppiedSpots);
+    }
 }

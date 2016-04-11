@@ -3,6 +3,7 @@ package com.doruchidean.clujbikemap.helpers;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.models.BikeStations;
 import com.edmodo.rangebar.RangeBar;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 /**
@@ -47,15 +49,16 @@ public class SettingsDialogs {
 
         TextView btnContactDev = (TextView) dialogContainer.findViewById(R.id.btn_contact_developer);
         TextView btnContactCallCenter = (TextView) dialogContainer.findViewById(R.id.btn_contact_call_center);
+        TextView btnCommunitySupport = (TextView) dialogContainer.findViewById(R.id.btn_community_support);
 
         btnContactDev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
                 emailIntent.setData(Uri.parse("mailto:"));
+                emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"doru.chidean@gmail.com"});
                 emailIntent.putExtra(Intent.EXTRA_SUBJECT, "ClujBike Map - android support");
                 emailIntent.putExtra(Intent.EXTRA_TEXT, "Hello, \n\n");
-                emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"doru.chidean@gmai.com"});
                 context.startActivity(Intent.createChooser(emailIntent, "Send email..."));
             }
         });
@@ -65,6 +68,31 @@ public class SettingsDialogs {
                 Intent callIntent = new Intent(Intent.ACTION_DIAL);
                 callIntent.setData(Uri.parse("tel:0371784172"));
                 context.startActivity(callIntent);
+            }
+        });
+        btnCommunitySupport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    context.startActivity(
+                            new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse(context.getString(R.string.community_page_app_uri)))
+                    );
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    context.startActivity(
+                            new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse(context.getString(R.string.community_page_web_uri)))
+                    );
+                }
+
+                CBMProgressDialog progressDialog = new CBMProgressDialog(context);
+                progressDialog.setIndeterminate(true);
+                progressDialog.setMessage("Redirecting...");
+                progressDialog.setCancelable(true);
+                progressDialog.show();
+                progressDialog.setMaxTimeLimitSeconds(3);
             }
         });
 
@@ -140,6 +168,8 @@ public class SettingsDialogs {
 
     public void updateOverallStats(Context context, ArrayList<BikeStations> stations){
         PersistenceManager pm = PersistenceManager.getInstance(context);
+
+        overallBikes = 0; overallSpots = 0; overallTotal = 0;
 
         for (BikeStations s : stations) {
             overallBikes += s.ocuppiedSpots;

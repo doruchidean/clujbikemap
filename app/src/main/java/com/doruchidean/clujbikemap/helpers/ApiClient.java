@@ -38,15 +38,12 @@ public class ApiClient {
         mClient.post(baseUrl + getStations, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-
                 caller.onSuccessBikeStations(Factory.getInstance().factorizeResponse(response));
-
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-
-                caller.onApiCallFail(throwable.getMessage());
+                caller.onApiCallFail(statusCode);
             }
         });
     }
@@ -67,8 +64,7 @@ public class ApiClient {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] binaryData, Throwable error) {
-                trace("FAILED GETTING BUS SCHEDULE " + error.getMessage());
-                caller.onApiCallFail(error.getMessage());
+                caller.onApiCallFail(statusCode);
             }
         });
 

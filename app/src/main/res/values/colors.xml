@@ -2,6 +2,7 @@
 
     <color name="black_overlay">#B3000000</color>
     <color name="transparent">#00FFFFFF</color>
+    <color name="semi_transparent">#59000000</color>
     <color name="white">#FFF</color>
     <color name="black">#000</color>
 

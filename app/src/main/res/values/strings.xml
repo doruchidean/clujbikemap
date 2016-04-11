@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ClujBike Map</string>
     <string name="title_activity_maps">ClujBike Map</string>
-    <string name="failure_getting_stations">There was an error getting the stations.</string>
+    <string name="failure_getting_stations">There was a server error while getting the stations.</string>
     <string name="dialog_open_settings">You need an internet connection</string>
     <string name="toast_up_to_date">Up to date</string>
     <string name="contact_developer">App Developer: doru.chidean@gmail.com</string>
@@ -29,6 +29,10 @@
     <string name="options_menu_timer_limit">Timer Limit</string>
     <string name="options_menu_widget_interval">Widget update time</string>
     <string name="options_menu_show_bus_bar_label">Show Bus bar</string>
+    <string name="contact_facebook_label">Community support</string>
+    <string name="community_page_web_uri">https://www.facebook.com/ClujBikeMap</string>
+    <string name="community_page_app_uri">fb://profile/ClujBikeMap</string>
+    <string name="failure_page_not_found">The bus does not operate today.</string>
 
     <string-array name="available_buses">
 

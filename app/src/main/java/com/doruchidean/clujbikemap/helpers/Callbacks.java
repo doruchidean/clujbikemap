@@ -13,7 +13,7 @@ public interface Callbacks {
     interface ApiCallbacks{
         void onSuccessBikeStations(ArrayList<BikeStations> stationsArray);
         void onSuccessBusTimes(byte[] rawData);
-        void onApiCallFail(String error);
+        void onApiCallFail(int responseCode);
     }
 
     interface SettingsDialogsCallback{

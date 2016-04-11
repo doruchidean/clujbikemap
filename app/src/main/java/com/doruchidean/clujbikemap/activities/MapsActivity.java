@@ -99,7 +99,7 @@ public class MapsActivity extends AppCompatActivity
         mBusBar = (LinearLayout) findViewById(R.id.bus_bar);
         mBusBar.setVisibility(
                 PersistenceManager.getInstance(MapsActivity.this).getShowBusBar() ?
-                        View.VISIBLE:
+                        View.VISIBLE :
                         View.INVISIBLE
         );
 
@@ -295,7 +295,7 @@ public class MapsActivity extends AppCompatActivity
             }else if(compare > 0){
                 lowEnd = middle +1;
             }else{
-               return mStationsArray.get(middle);
+                return mStationsArray.get(middle);
             }
 
         }
@@ -548,8 +548,16 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onApiCallFail(String error) {
-        Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations) + error, Toast.LENGTH_LONG).show();
+    public void onApiCallFail(int errorCode) {
+        trace(errorCode + " error code");
+        switch (errorCode){
+            case (404):
+                Toast.makeText(MapsActivity.this, getString(R.string.failure_page_not_found), Toast.LENGTH_LONG).show();
+                break;
+            default:
+                Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations), Toast.LENGTH_LONG).show();
+                break;
+        }
     }
 
     @Override
@@ -638,7 +646,6 @@ public class MapsActivity extends AppCompatActivity
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 ApiClient.getInstance().getBusSchedule(MapsActivity.this, persistenceManager.getBusName());
-                                tvSelectedBus.setText(Factory.getInstance().getBusNumber(persistenceManager.getBusName()));
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -673,9 +680,9 @@ public class MapsActivity extends AppCompatActivity
 
                 new AlertDialog.Builder(MapsActivity.this)
                         .setTitle(getString(R.string.dialog_orar_complet) + " " +
-                                Factory.getInstance().getBusNumber(
-                                        persistenceManager.getBusName()
-                                )
+                                        Factory.getInstance().getBusNumber(
+                                                persistenceManager.getBusName()
+                                        )
                         )
                         .setView(busTimesContainer)
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -716,7 +723,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onStop() {
 
         PersistenceManager persistenceManager = PersistenceManager.getInstance(MapsActivity.this);
         persistenceManager.saveData(this);
@@ -751,7 +758,8 @@ public class MapsActivity extends AppCompatActivity
 
             trace("widget updated in onDestroy maps activity");
         }
-        super.onDestroy();
+
+        super.onStop();
     }
 
     public static void trace(String s){

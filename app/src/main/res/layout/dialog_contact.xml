@@ -1,32 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center">
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:gravity="center">
 
-    <TextView android:id="@+id/btn_contact_developer"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="left|center_vertical"
-        android:drawableLeft="@android:drawable/ic_menu_edit"
-        android:text="@string/contact_developer"/>
+  <TextView android:id="@+id/btn_contact_developer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="start|center_vertical"
+            android:drawableLeft="@android:drawable/ic_menu_edit"
+            android:drawableStart="@android:drawable/ic_menu_edit"
+            android:text="@string/contact_developer"/>
 
-    <TextView android:id="@+id/btn_contact_call_center"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        android:padding="8dp"
-        android:gravity="left|center_vertical"
-        android:drawableLeft="@android:drawable/ic_menu_call"
-        android:text="@string/contact_call_center"/>
+  <TextView android:id="@+id/btn_contact_call_center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:gravity="start|center_vertical"
+            android:drawableLeft="@android:drawable/ic_menu_call"
+            android:drawableStart="@android:drawable/ic_menu_call"
+            android:text="@string/contact_call_center"/>
+
+  <TextView
+      android:id="@+id/btn_community_support"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="16dp"
+      android:layout_marginTop="8dp"
+      android:layout_marginRight="16dp"
+      android:layout_marginBottom="16dp"
+      android:padding="8dp"
+      android:drawableStart="@drawable/ic_facebook_white"
+      android:drawableLeft="@drawable/ic_facebook_white"
+      android:gravity="start|center_vertical"
+      android:text="@string/contact_facebook_label"/>
 
 </LinearLayout>
