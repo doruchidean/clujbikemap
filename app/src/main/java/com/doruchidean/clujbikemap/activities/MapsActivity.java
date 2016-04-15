@@ -237,7 +237,7 @@ public class MapsActivity extends AppCompatActivity
             markerOptions.position(new LatLng(station.latitude, station.longitude));
             markerOptions.title(station.stationName);
 
-            if (station.ocuppiedSpots == 0) {
+            if (station.statusType.equalsIgnoreCase("offline")) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_offline));
             } else if (station.ocuppiedSpots < pm.getColdLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_underpopulated));
