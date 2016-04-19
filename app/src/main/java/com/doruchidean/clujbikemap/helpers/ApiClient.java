@@ -50,21 +50,22 @@ public class ApiClient {
 
     public void getBusSchedule(final Callbacks.ApiCallbacks caller, String bus){
 
-        String url = Factory.getInstance().resolveBusInUrl(bus, busUrl);
+        String url = GeneralHelper.resolveBusInUrl(bus, busUrl);
 
-        trace("getting bus " + bus + " at" + url);
+        trace("getting bus " + bus + " at: " + url);
 
         String[] contentTypes = {"text/csv"};
+
         mClient.get(url, new BinaryHttpResponseHandler(contentTypes) {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
-
                 caller.onSuccessBusTimes(binaryData);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] binaryData, Throwable error) {
                 caller.onApiCallFail(statusCode);
+                trace("fail getBusSchedule: " + error.getMessage() + ", statusCode: "+statusCode);
             }
         });
 

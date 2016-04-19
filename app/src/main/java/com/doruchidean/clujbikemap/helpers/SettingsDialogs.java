@@ -3,10 +3,11 @@ package com.doruchidean.clujbikemap.helpers;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.SystemClock;
@@ -16,10 +17,9 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import com.doruchidean.clujbikemap.R;
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
 import com.edmodo.rangebar.RangeBar;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 
 /**
@@ -56,7 +56,7 @@ public class SettingsDialogs {
             public void onClick(View v) {
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
                 emailIntent.setData(Uri.parse("mailto:"));
-                emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"doru.chidean@gmail.com"});
+                emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{context.getString(R.string.developer_email)});
                 emailIntent.putExtra(Intent.EXTRA_SUBJECT, "ClujBike Map - android support");
                 emailIntent.putExtra(Intent.EXTRA_TEXT, "Hello, \n\n");
                 context.startActivity(Intent.createChooser(emailIntent, "Send email..."));
@@ -73,19 +73,20 @@ public class SettingsDialogs {
         btnCommunitySupport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Uri uri = Uri.parse(context.getString(R.string.community_page_web_url));
                 try {
-                    context.startActivity(
-                            new Intent(Intent.ACTION_VIEW,
-                                    Uri.parse(context.getString(R.string.community_page_app_uri)))
-                    );
-
-                } catch (Exception e) {
+                    ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo("com.facebook.katana", 0);
+                    if (applicationInfo.enabled) {
+                        // http://stackoverflow.com/a/24547437/1048340
+                        uri = Uri.parse("fb://facewebmodal/f?href=" + context.getString(R.string.community_page_web_url));
+                    }
+                } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
-                    context.startActivity(
-                            new Intent(Intent.ACTION_VIEW,
-                                    Uri.parse(context.getString(R.string.community_page_web_uri)))
-                    );
                 }
+
+                context.startActivity(
+                        new Intent(Intent.ACTION_VIEW, uri)
+                );
 
                 CBMProgressDialog progressDialog = new CBMProgressDialog(context);
                 progressDialog.setIndeterminate(true);
@@ -155,9 +156,7 @@ public class SettingsDialogs {
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
                         caller.setUpMap();
-
                         dialog.dismiss();
                     }
                 });
@@ -166,13 +165,13 @@ public class SettingsDialogs {
 
     }
 
-    public void updateOverallStats(Context context, ArrayList<BikeStations> stations){
+    public void updateOverallStats(Context context, ArrayList<BikeStation> stations){
         PersistenceManager pm = PersistenceManager.getInstance(context);
 
         overallBikes = 0; overallSpots = 0; overallTotal = 0;
 
-        for (BikeStations s : stations) {
-            overallBikes += s.ocuppiedSpots;
+        for (BikeStation s : stations) {
+            overallBikes += s.occupiedSpots;
             overallSpots += s.emptySpots;
             overallTotal += s.maximumNumberOfBikes;
             s.isFavourite = pm.isFavourite(s.stationName);
@@ -268,7 +267,7 @@ public class SettingsDialogs {
 
                         setAlarmForWidgetUpdate(
                                 context,
-                                Factory.getInstance().getMillisForDisplayedValue(updateTime[0])
+                                GeneralHelper.getMillisForDisplayedValue(updateTime[0])
                         );
 
                         persistenceManager.setWidgetUpdateInterval(updateTime[0]);

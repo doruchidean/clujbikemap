@@ -26,22 +26,23 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.doruchidean.clujbikemap.adapters.GoogleMapsInfoWindowAdapter;
 import com.doruchidean.clujbikemap.helpers.ApiClient;
 import com.doruchidean.clujbikemap.adapters.BusListAdapter;
 import com.doruchidean.clujbikemap.helpers.Callbacks;
 import com.doruchidean.clujbikemap.helpers.Factory;
+import com.doruchidean.clujbikemap.helpers.GeneralHelper;
 import com.doruchidean.clujbikemap.helpers.NotificationHandler;
 import com.doruchidean.clujbikemap.helpers.PersistenceManager;
 import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.helpers.SettingsDialogs;
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -61,11 +62,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity
-        implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, Callbacks.ApiCallbacks, Callbacks.SettingsDialogsCallback, View.OnClickListener {
+        implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        Callbacks.ApiCallbacks,
+        Callbacks.SettingsDialogsCallback,
+        View.OnClickListener,
+        GoogleMap.OnInfoWindowClickListener{
 
     private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
-    private ArrayList<BikeStations> mStationsArray = new ArrayList<>();
+    private ArrayList<BikeStation> mStationsArray = new ArrayList<>();
     private ArrayList<String> plecariCapat1 = new ArrayList<>();
     private ArrayList<String> plecariCapat2 = new ArrayList<>();
     private String capat1Title, capat2Title;
@@ -78,6 +84,7 @@ public class MapsActivity extends AppCompatActivity
     private TextView tvBusCapat1, tvBusCapat2, tvSelectedBus;
     private LinearLayout llTimesLeft, llTimesRight;
     private LinearLayout mBusBar;
+    private GoogleMapsInfoWindowAdapter mMapInfoWindowsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,9 +107,10 @@ public class MapsActivity extends AppCompatActivity
         mBusBar.setVisibility(
                 PersistenceManager.getInstance(MapsActivity.this).getShowBusBar() ?
                         View.VISIBLE :
-                        View.INVISIBLE
+                        View.GONE
         );
 
+        mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
     }
 
     @Override
@@ -219,6 +227,10 @@ public class MapsActivity extends AppCompatActivity
                     .getMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
+                mMap.setMyLocationEnabled(true);
+
+                mMap.setOnInfoWindowClickListener(this);
+                mMap.setInfoWindowAdapter(mMapInfoWindowsAdapter);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
                 setUpMap();
             }
@@ -231,7 +243,7 @@ public class MapsActivity extends AppCompatActivity
 
         for (int i = 0; i < mStationsArray.size(); i++) {
 
-            BikeStations station = mStationsArray.get(i);
+            BikeStation station = mStationsArray.get(i);
 
             markerOptions = new MarkerOptions();
             markerOptions.position(new LatLng(station.latitude, station.longitude));
@@ -239,9 +251,9 @@ public class MapsActivity extends AppCompatActivity
 
             if (station.statusType.equalsIgnoreCase("offline")) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_offline));
-            } else if (station.ocuppiedSpots < pm.getColdLimit()) {
+            } else if (station.occupiedSpots < pm.getColdLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_underpopulated));
-            } else if (station.ocuppiedSpots < station.maximumNumberOfBikes - pm.getHotLimit()) {
+            } else if (station.occupiedSpots < station.maximumNumberOfBikes - pm.getHotLimit()) {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_online));
             } else {
                 markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.station_overpopulated));
@@ -261,107 +273,18 @@ public class MapsActivity extends AppCompatActivity
     public void setUpMap() {
 
         mMap.clear();
+        mapMarkers.clear();
+        createMarkers();
 
         for(MarkerOptions m : mapMarkers){
             mMap.addMarker(m);
         }
-
-        mMap.setMyLocationEnabled(true);
-
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-
-                onMarkerClickFunction(marker);
-
-                return false;
-            }
-        });
-    }
-
-    private BikeStations binarySearchStation(String markerTitleToFind){
-
-        int lowEnd = 0;
-        int highEnd = mStationsArray.size()-1;
-        int middle, compare;
-
-        while (lowEnd <= highEnd){
-            middle = (lowEnd+highEnd)/2;
-
-            compare = markerTitleToFind.compareToIgnoreCase(mStationsArray.get(middle).stationName);
-
-            if(compare < 0){
-                highEnd = middle-1;
-            }else if(compare > 0){
-                lowEnd = middle +1;
-            }else{
-                return mStationsArray.get(middle);
-            }
-
-        }
-
-        return null;
-    }
-
-    private void onMarkerClickFunction(final Marker marker){
-
-        final BikeStations station = binarySearchStation(marker.getTitle());
-        final PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
-
-        if(station == null){
-            return;
-        }
-
-        View stationDialog = View.inflate(MapsActivity.this, R.layout.dialog_station, null);
-        TextView stationDialogName = (TextView) stationDialog.findViewById(R.id.tvDialogName);
-        TextView stationDialogAddress = (TextView) stationDialog.findViewById(R.id.tvDialogAddress);
-        TextView stationDialogEmptySpots = (TextView) stationDialog.findViewById(R.id.tvEmptySpots);
-        TextView stationDialogOccupiedSpots = (TextView) stationDialog.findViewById(R.id.tvOcuppiedSpots);
-        TextView stationDialogStatus = (TextView) stationDialog.findViewById(R.id.tvStatus);
-        ImageView stationDialogFavouriteButton = (ImageView) stationDialog.findViewById(R.id.btn_add_favourite);
-
-        stationDialogName.setText(station.stationName);
-        stationDialogAddress.setText(station.address);
-        stationDialogEmptySpots.setText(String.format("Locuri libere: %s", station.emptySpots));
-        stationDialogOccupiedSpots.setText(String.format("Biciclete disponibile: %s", station.ocuppiedSpots));
-        stationDialogStatus.setText(String.format("Status: %s", station.statusType));
-        stationDialogFavouriteButton.setBackgroundResource(station.isFavourite ? R.drawable.ic_favourite : R.drawable.ic_add_favourite);
-
-        stationDialogFavouriteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (station.isFavourite) {
-                    v.setBackgroundResource(R.drawable.ic_add_favourite);
-                    station.isFavourite = false;
-                    pm.removeFavouriteStation(station.stationName);
-                    marker.setVisible(false);
-                } else {
-                    v.setBackgroundResource(R.drawable.ic_favourite);
-                    station.isFavourite = true;
-                    pm.addFavouriteStation(station.stationName);
-                }
-
-            }
-        });
-
-        AlertDialog dialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        })
-                .setCancelable(true)
-                .setView(stationDialog);
-        dialog = builder.create();
-        dialog.show();
     }
 
     private void hideNonFavouriteMarkers(PersistenceManager pm){
-        BikeStations matchingStation;
+        BikeStation matchingStation;
         for(MarkerOptions m : mapMarkers){
-            matchingStation = binarySearchStation(m.getTitle());
+            matchingStation = GeneralHelper.binarySearchStation(m.getTitle(), mStationsArray);
             if(matchingStation != null) {
                 m.visible(pm.isFavourite(matchingStation.stationName));
             }
@@ -450,7 +373,7 @@ public class MapsActivity extends AppCompatActivity
     private void onShowBusBarClicked(MenuItem item){
         PersistenceManager.getInstance(MapsActivity.this).setShowBusBar(!item.isChecked());
 
-        mBusBar.setVisibility(!item.isChecked() ? View.VISIBLE : View.INVISIBLE);
+        mBusBar.setVisibility(!item.isChecked() ? View.VISIBLE : View.GONE);
 
         item.setChecked(!item.isChecked());
     }
@@ -466,12 +389,13 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onSuccessBikeStations(ArrayList<BikeStations> stationsArray) {
+    public void onSuccessBikeStations(ArrayList<BikeStation> stationsArray) {
         this.mStationsArray = stationsArray;
         Collections.sort(this.mStationsArray);
 
         Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
-        createMarkers();
+
+        mMapInfoWindowsAdapter.notifyDataSetChanged(mStationsArray);
         setUpMap();
         SettingsDialogs.getInstance().updateOverallStats(MapsActivity.this, mStationsArray);
     }
@@ -486,7 +410,7 @@ public class MapsActivity extends AppCompatActivity
 
         setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft);
         setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight);
-        tvSelectedBus.setText(Factory.getInstance().getBusNumber(pm.getBusName()));
+        tvSelectedBus.setText(GeneralHelper.getBusNumber(pm.getBusName()));
 
         plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
         plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
@@ -513,7 +437,7 @@ public class MapsActivity extends AppCompatActivity
             tvSubtitle.setText(getString(R.string.bus_bar_subtitle_to_be_filled));
             tvSubtitle.setPadding(0,0,padding2dp,0);
         } else {
-            tvSubtitle.setText(String.format(getString(R.string.bus_bar_subtitle_full), Factory.maxMinutes));
+            tvSubtitle.setText(String.format(getString(R.string.bus_bar_subtitle_full), GeneralHelper.maxMinutes));
         }
         parent.addView(tvSubtitle);
 
@@ -553,10 +477,34 @@ public class MapsActivity extends AppCompatActivity
         switch (errorCode){
             case (404):
                 Toast.makeText(MapsActivity.this, getString(R.string.failure_page_not_found), Toast.LENGTH_LONG).show();
+                tvBusCapat1.setText(getString(R.string.bus_schedule_not_found));
                 break;
             default:
                 Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations), Toast.LENGTH_LONG).show();
                 break;
+        }
+    }
+
+    @Override public void onInfoWindowClick(Marker marker) {
+        BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
+        if(station == null) return;
+
+        PersistenceManager pm = PersistenceManager.getInstance(this);
+
+        if (station.isFavourite) {
+            pm.removeFavouriteStation(station.stationName);
+        } else {
+            pm.addFavouriteStation(station.stationName);
+        }
+        updateFavouriteStations(pm);
+        mMapInfoWindowsAdapter.notifyDataSetChanged(mStationsArray);
+        marker.showInfoWindow();
+    }
+
+    private void updateFavouriteStations(PersistenceManager pm){
+        ArrayList favouriteStations = pm.getFavouriteStations();
+        for (int i = 0; i < mStationsArray.size(); i++) {
+            mStationsArray.get(i).isFavourite = favouriteStations.contains(mStationsArray.get(i).stationName);
         }
     }
 
@@ -594,7 +542,7 @@ public class MapsActivity extends AppCompatActivity
 
                 if (!persistenceManager.getIsCountingDown()) {
 
-                    int minutes = Factory.getInstance().getMillisForDisplayedValue(persistenceManager.getTimerMinutes());
+                    int minutes = GeneralHelper.getMillisForDisplayedValue(persistenceManager.getTimerMinutes());
                     long alarmTime = SystemClock.elapsedRealtime()
                             + 1000 * 60 * minutes;
 
@@ -680,7 +628,7 @@ public class MapsActivity extends AppCompatActivity
 
                 new AlertDialog.Builder(MapsActivity.this)
                         .setTitle(getString(R.string.dialog_orar_complet) + " " +
-                                        Factory.getInstance().getBusNumber(
+                                        GeneralHelper.getBusNumber(
                                                 persistenceManager.getBusName()
                                         )
                         )
@@ -700,6 +648,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     int backPressedCount = 0;
+
     @Override
     public void onBackPressed() {
 
@@ -736,17 +685,17 @@ public class MapsActivity extends AppCompatActivity
 
             remoteViews.setTextViewText(
                     R.id.tv_widget_bus,
-                    Factory.getInstance().getBusNumber(busName)
+                    GeneralHelper.getBusNumber(busName)
             );
             remoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, capat1Title);
             remoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, capat2Title);
             remoteViews.setTextViewText(
                     R.id.tv_widget_times_capat_1,
-                    Factory.getInstance().getPlecariAtThisHour(plecariCapat1)
+                    GeneralHelper.getPlecariAtThisHour(plecariCapat1)
             );
             remoteViews.setTextViewText(
                     R.id.tv_widget_times_capat_2,
-                    Factory.getInstance().getPlecariAtThisHour(plecariCapat2)
+                    GeneralHelper.getPlecariAtThisHour(plecariCapat2)
             );
             Intent intent = new Intent(this, MapsActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
@@ -765,5 +714,4 @@ public class MapsActivity extends AppCompatActivity
     public static void trace(String s){
         Log.d("traces", s);
     }
-
 }

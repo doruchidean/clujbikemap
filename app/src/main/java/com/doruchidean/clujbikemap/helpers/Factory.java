@@ -1,7 +1,6 @@
 package com.doruchidean.clujbikemap.helpers;
 
-import com.doruchidean.clujbikemap.activities.MapsActivity;
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,8 +29,6 @@ public class Factory {
 					PLECARI_CAPAT_2="pelcari2",
 					NUME_CAPETE="numecapete";
 
-	public static final int minMinutes = 0, maxMinutes=45;
-
 	public static Factory getInstance() {
 		return ourInstance;
 	}
@@ -39,10 +36,10 @@ public class Factory {
 	private Factory() {
 	}
 
-	public ArrayList<BikeStations> factorizeResponse(JSONObject response){
+	public ArrayList<BikeStation> factorizeResponse(JSONObject response){
 
 		JSONArray array;
-		ArrayList<BikeStations> stationsArray = new ArrayList<>();
+		ArrayList<BikeStation> stationsArray = new ArrayList<>();
 		try {
 			array = response.getJSONArray("Data");
 
@@ -50,12 +47,12 @@ public class Factory {
 
 				JSONObject j = array.optJSONObject(i);
 
-				BikeStations bikeStation = new BikeStations();
+				BikeStation bikeStation = new BikeStation();
 
 				bikeStation.stationName = j.getString("StationName");
 				bikeStation.address = j.getString("Address");
 				bikeStation.emptySpots = j.getInt("EmptySpots");
-				bikeStation.ocuppiedSpots = j.getInt("OcuppiedSpots");
+				bikeStation.occupiedSpots = j.getInt("OcuppiedSpots");
 				bikeStation.statusType = j.getString("StatusType");
 				bikeStation.customIsValid = j.getBoolean("CustomIsValid");
 				bikeStation.id = j.getInt("Id");
@@ -76,70 +73,6 @@ public class Factory {
 		}
 
 		return stationsArray;
-	}
-
-	public String getBusNumber(String busName){
-		return busName.split(":")[0];
-	}
-
-	public String resolveBusInUrl(String busName, String url){
-		Calendar calendar = Calendar.getInstance();
-
-		String busExtension = getBusNumber(busName);
-
-		switch (calendar.get(Calendar.DAY_OF_WEEK)){
-			case(Calendar.SATURDAY): busExtension = busExtension+"_s";
-				break;
-			case(Calendar.SUNDAY): busExtension = busExtension+"_d";
-				break;
-			default: busExtension = busExtension+"_lv";
-		}
-
-		return url.replace("BUS_PERIOD", busExtension);
-	}
-
-	public String getPlecariAtThisHour(ArrayList<String> plecariTotale){
-
-		Calendar calendar = Calendar.getInstance();
-
-		String result="|";
-		String plecare;
-
-		for(String s : plecariTotale){
-			plecare = isBusTimeInNextHour(false, s, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
-			if(plecare != null){
-				result += plecare + "| ";
-			}
-		}
-
-		if(result.length() == 1){
-			result = String.format(" > %s min", maxMinutes);
-		}
-		return result;
-	}
-
-	private String isBusTimeInNextHour(boolean requiresMinutes, String plecare, int currentHour, int currentMinute){
-
-		String[] busHourAndMin = plecare.split(":");
-		int busHour = Integer.valueOf(busHourAndMin[0]);
-		int currentTimeSeconds = currentHour*60*60 + currentMinute*60;
-
-		if(currentHour == busHour || currentHour+1==busHour) {
-
-			int busMin = Integer.valueOf(busHourAndMin[1]);
-			int busTimeSeconds = busHour * 60 * 60 + busMin * 60;
-			int timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
-
-			if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
-
-				if (requiresMinutes) {
-					return String.valueOf(timeDifference);
-				} else {
-					return plecare;
-				}
-			}
-		}
-		return null;
 	}
 
 	public HashMap<String, ArrayList<String>> readCsv(byte[] binaryData){
@@ -177,7 +110,7 @@ public class Factory {
 
 					plecariCapatul1.add(row[0]);
 
-					minutesRemaining = isBusTimeInNextHour(true, row[0], currentHour, currentMinute);
+					minutesRemaining = GeneralHelper.isBusTimeInNextHour(true, row[0], currentHour, currentMinute);
 					if(minutesRemaining != null){
 						minutesCapatul1.add(minutesRemaining);
 					}
@@ -192,7 +125,7 @@ public class Factory {
 
 					plecariCapatul2.add(row[1]);
 
-					minutesRemaining = isBusTimeInNextHour(true, row[1], currentHour, currentMinute);
+					minutesRemaining = GeneralHelper.isBusTimeInNextHour(true, row[1], currentHour, currentMinute);
 					if(minutesRemaining != null){
 						minutesCapatul2.add(minutesRemaining);
 					}
@@ -215,27 +148,5 @@ public class Factory {
 			throw new RuntimeException("Error while closing input stream: "+e);
 		}
 		return resultList;
-	}
-
-	public int getMillisForDisplayedValue(int pickerVal){
-		int result;
-
-		if(pickerVal == 2){
-			result = 45;
-		}else if(pickerVal == 3){
-			result = 60;
-		}else if(pickerVal == 4){
-			result = 4*60;
-		}else if(pickerVal == 5){
-			result = 8*60;
-		}else if(pickerVal == 6){
-			result = 12*60;
-		}else if(pickerVal == 7){
-			result = 24*60;
-		}else{
-			result = 30;
-		}
-
-		return result*60*1000;
 	}
 }

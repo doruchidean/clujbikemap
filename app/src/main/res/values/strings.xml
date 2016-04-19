@@ -5,6 +5,7 @@
     <string name="dialog_open_settings">You need an internet connection</string>
     <string name="toast_up_to_date">Up to date</string>
     <string name="contact_developer">App Developer: doru.chidean@gmail.com</string>
+    <string name="developer_email">doru.chidean@gmail.com</string>
     <string name="contact_call_center">Call Center: 0371 784 172</string>
     <string name="dialog_margins_cold">Cold Margin: </string>
     <string name="dialog_margins_hot">Hot Margin: </string>
@@ -30,9 +31,9 @@
     <string name="options_menu_widget_interval">Widget update time</string>
     <string name="options_menu_show_bus_bar_label">Show Bus bar</string>
     <string name="contact_facebook_label">Community support</string>
-    <string name="community_page_web_uri">https://www.facebook.com/ClujBikeMap</string>
-    <string name="community_page_app_uri">fb://profile/ClujBikeMap</string>
-    <string name="failure_page_not_found">The bus does not operate today.</string>
+    <string name="community_page_web_url">https://www.facebook.com/ClujBikeMap</string>
+    <string name="failure_page_not_found">Eroare 404. Not found!</string>
+    <string name="bus_schedule_not_found">The bus might not operate today!</string>
 
     <string-array name="available_buses">
 

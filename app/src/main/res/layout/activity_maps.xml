@@ -7,6 +7,7 @@
     <fragment android:id="@+id/map"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
+        android:layout_above="@+id/bus_bar"
         android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
     <ImageButton android:id="@+id/btn_show_favourites"
@@ -29,14 +30,16 @@
         android:layout_toStartOf="@id/btn_show_favourites"
         android:layout_marginTop="5dp"/>
 
-    <LinearLayout android:id="@+id/bus_bar"
+    <LinearLayout android:id="@id/bus_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/black_overlay"
         android:padding="8dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        >
 
         <LinearLayout android:id="@+id/btn_full_bus_schedule"
             android:onClick="onClick"
@@ -94,6 +97,7 @@
         </LinearLayout>
         <TextView android:id="@+id/btn_select_bus"
             android:onClick="onClick"
+            android:clickable="true"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight=".15"

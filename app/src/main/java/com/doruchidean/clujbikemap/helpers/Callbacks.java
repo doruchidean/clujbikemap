@@ -1,6 +1,6 @@
 package com.doruchidean.clujbikemap.helpers;
 
-import com.doruchidean.clujbikemap.models.BikeStations;
+import com.doruchidean.clujbikemap.models.BikeStation;
 
 import java.util.ArrayList;
 
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public interface Callbacks {
 
     interface ApiCallbacks{
-        void onSuccessBikeStations(ArrayList<BikeStations> stationsArray);
+        void onSuccessBikeStations(ArrayList<BikeStation> stationsArray);
         void onSuccessBusTimes(byte[] rawData);
         void onApiCallFail(int responseCode);
     }

@@ -40,7 +40,7 @@ public class WidgetProvider extends AppWidgetProvider {
         //start alarm service to update the widget regularly
         SettingsDialogs.getInstance().setAlarmForWidgetUpdate(
                 context,
-                Factory.getInstance().getMillisForDisplayedValue(
+                GeneralHelper.getMillisForDisplayedValue(
                         PersistenceManager.getInstance(context).getWidgetUpdateInterval()
                 )
         );
@@ -86,14 +86,12 @@ public class WidgetProvider extends AppWidgetProvider {
 
         if(rawData == null || busName.length() == 0) return;
 
-        Factory factory = Factory.getInstance();
+        HashMap<String, ArrayList<String>> leavingTimes = Factory.getInstance().readCsv(rawData);
 
-        HashMap<String, ArrayList<String>> leavingTimes = factory.readCsv(rawData);
-
-        mRemoteViews.setTextViewText(R.id.tv_widget_bus, factory.getBusNumber(busName));
-        String text= factory.getPlecariAtThisHour(leavingTimes.get(Factory.PLECARI_CAPAT_2));
+        mRemoteViews.setTextViewText(R.id.tv_widget_bus, GeneralHelper.getBusNumber(busName));
+        String text= GeneralHelper.getPlecariAtThisHour(leavingTimes.get(Factory.PLECARI_CAPAT_2));
         mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_2, text);
-        text = factory.getPlecariAtThisHour(leavingTimes.get(Factory.PLECARI_CAPAT_1));
+        text = GeneralHelper.getPlecariAtThisHour(leavingTimes.get(Factory.PLECARI_CAPAT_1));
         mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_1, text);
         text = leavingTimes.get(Factory.NUME_CAPETE).get(0);
         mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, text);
