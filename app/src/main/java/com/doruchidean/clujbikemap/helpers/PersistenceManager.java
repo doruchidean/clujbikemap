@@ -3,8 +3,7 @@ package com.doruchidean.clujbikemap.helpers;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-
-import com.loopj.android.http.Base64;
+import android.util.Base64;
 
 import java.util.ArrayList;
 import java.util.Collections;

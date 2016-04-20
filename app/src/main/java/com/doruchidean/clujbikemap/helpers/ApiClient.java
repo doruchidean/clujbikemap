@@ -2,12 +2,12 @@ package com.doruchidean.clujbikemap.helpers;
 
 import android.util.Log;
 
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.BinaryHttpResponseHandler;
-import com.loopj.android.http.JsonHttpResponseHandler;
-
-import org.apache.http.Header;
-import org.json.JSONObject;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 /**
  * Created by Doru on 19/11/15.
@@ -15,65 +15,68 @@ import org.json.JSONObject;
  */
 public class ApiClient {
 
-    private static ApiClient instance = new ApiClient();
-    private AsyncHttpClient mClient;
-    private String
-            baseUrl = "http://84.232.185.103",
-            getStations = "/Station/Read",
-            busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv",
-            login = "/logare", //todo vezi daca il poti folosi
-            getCardDetails="/CTIInformation/ReadTransactionDetails/"; //todo vezi daca functioneaza callu asta
+  private static ApiClient instance = new ApiClient();
+//  private String login = "/logare"; //todo vezi daca il poti folosi
+//  private String getCardDetails="/CTIInformation/ReadTransactionDetails/"; //todo vezi daca functioneaza callu asta
+  private final OkHttpClient client;
 
-    public ApiClient(){
+  public ApiClient(){
+    client = new OkHttpClient();
+  }
 
-        mClient = new AsyncHttpClient();
-    }
+  public static ApiClient getInstance(){
+    return instance;
+  }
 
-    public static ApiClient getInstance(){
-        return instance;
-    }
+  public void getStations(Callback callback){
+    String baseUrl = "http://84.232.185.103";
+    String getStations = "/Station/Read";
+    trace("get stations: " + baseUrl + getStations);
 
-    public void getStations(final Callbacks.ApiCallbacks caller){
+    Request request = new Request.Builder()
+            .url(baseUrl + getStations)
+            .post(new FormBody.Builder().build())
+            .build();
+    Call call = client.newCall(request);
+    call.enqueue(callback);
+  }
 
-        mClient.post(baseUrl + getStations, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                caller.onSuccessBikeStations(Factory.getInstance().factorizeResponse(response));
-            }
+  public void getBusSchedule(Callback callback, String bus){
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                caller.onApiCallFail(statusCode);
-            }
-        });
-    }
+    String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
+    String url = GeneralHelper.resolveBusInUrl(bus, busUrl);
 
-    public void getBusSchedule(final Callbacks.ApiCallbacks caller, String bus){
+    trace("getting bus " + bus + " at: " + url);
+    Request request = new Request.Builder()
+            .url(url)
+            .build();
+    Call response = client.newCall(request);
+    response.enqueue(callback);
 
-        String url = GeneralHelper.resolveBusInUrl(bus, busUrl);
+  }
 
-        trace("getting bus " + bus + " at: " + url);
+  public void getDistance(String from, String to, String key, Callback callback){
+    HttpUrl url = new HttpUrl.Builder()
+            .scheme("https")
+            .host("maps.googleapis.com")
+            .addPathSegments("maps/api/distancematrix/json")
+            .addQueryParameter("origins", from)
+            .addQueryParameter("destinations", to)
+            .addQueryParameter("mode", "walking")
+            .addQueryParameter("key", key)
+            .build();
 
-        String[] contentTypes = {"text/csv"};
+    trace("getDistance:  " + url.toString());
 
-        mClient.get(url, new BinaryHttpResponseHandler(contentTypes) {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
-                caller.onSuccessBusTimes(binaryData);
-            }
+    Request request = new Request.Builder()
+            .url(url)
+            .build();
+    Call response = client.newCall(request);
+    response.enqueue(callback);
+  }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] binaryData, Throwable error) {
-                caller.onApiCallFail(statusCode);
-                trace("fail getBusSchedule: " + error.getMessage() + ", statusCode: "+statusCode);
-            }
-        });
-
-    }
-
-    private void trace(String s){
-        Log.d("traces", s);
-    }
-
+  private void trace(String s){
+    Log.d("traces", s);
+  }
 
 }

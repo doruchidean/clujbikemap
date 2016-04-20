@@ -35,6 +35,8 @@
     <string name="failure_page_not_found">Eroare 404. Not found!</string>
     <string name="bus_schedule_not_found">The bus might not operate today!</string>
 
+    <string name="google_distance_key">AIzaSyAnwWN9iGxuUJXh398GAPBrFZE1GWZGhYE</string>
+
     <string-array name="available_buses">
 
         <item> 1: Str. Bucium - P-ta 1 Mai</item>

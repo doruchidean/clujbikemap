@@ -55,17 +55,24 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+
 public class MapsActivity extends AppCompatActivity
         implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        Callbacks.ApiCallbacks,
         Callbacks.SettingsDialogsCallback,
         View.OnClickListener,
         GoogleMap.OnInfoWindowClickListener{
@@ -111,7 +118,28 @@ public class MapsActivity extends AppCompatActivity
         );
 
         mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
+
+//        ApiClient.getInstance().getDistance(
+//                "Strada+Gruia+nr+2,+Cluj",
+//                "Strada+Tulcea+20,+Cluj",
+//                getString(R.string.google_distance_key),
+//                getDistanceCallback); //todo testin only
     }
+
+    private Callback getDistanceCallback = new Callback() {
+        @Override public void onFailure(Call call, IOException e) {
+            trace(call.toString() + " e: " + e.getMessage());
+        }
+
+        @Override public void onResponse(Call call, Response response) throws IOException {
+            try {
+                JSONObject j = new JSONObject(response.body().string());
+                trace("success " + j.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -124,11 +152,11 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
 
-        ApiClient.getInstance().getStations(MapsActivity.this);
+        ApiClient.getInstance().getStations(getStationsCallback);
 
         PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
         if(pm.getBusName().length() > 0){
-            ApiClient.getInstance().getBusSchedule(MapsActivity.this, pm.getBusName());
+            ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, pm.getBusName());
         }
 
         setUpMapIfNeeded();
@@ -136,6 +164,75 @@ public class MapsActivity extends AppCompatActivity
         buildGoogleApiClient();
 
         refreshUIButtons();
+    }
+
+    private Callback getStationsCallback = new Callback() {
+        @Override public void onFailure(Call call, IOException e) {
+            trace("fail getStations " + e.getMessage());
+        }
+
+        @Override public void onResponse(Call call, Response response) throws IOException {
+            String stringResponse = response.body().string();
+            trace("response getStations: " + stringResponse);
+            try {
+                final JSONObject jsonResponse = new JSONObject(stringResponse);
+                MapsActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        updateMarkersUI(jsonResponse);
+                    }
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private Callback getBusScheduleCallback = new Callback() {
+        @Override public void onFailure(Call call, IOException e) {
+            trace("fail gettingBus " + e.getMessage());
+        }
+
+        @Override public void onResponse(Call call, final Response response) throws IOException {
+
+            final byte[] bytes = response.body().bytes();
+            MapsActivity.this.runOnUiThread(
+                new Runnable() {
+                    public void run() {
+                        if (response.code() != 200) {
+                            onApiCallFail(response.code());
+                            return;
+                        }
+                        updateBusBarUI(bytes);
+                    }
+                }
+            );
+        }
+    };
+
+    private void updateMarkersUI(JSONObject jsonResponse){
+        mStationsArray = Factory.getInstance().factorizeResponse(jsonResponse);
+        Collections.sort(MapsActivity.this.mStationsArray);
+        Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
+        mMapInfoWindowsAdapter.notifyDataSetChanged(mStationsArray);
+        setUpMap();
+        SettingsDialogs.getInstance().updateOverallStats(MapsActivity.this, mStationsArray);
+    }
+    
+    private void updateBusBarUI(byte[] bytes){
+        PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
+        pm.setBusSchedule(MapsActivity.this, bytes);
+        HashMap<String, ArrayList<String>> leavingTimes = Factory.getInstance().readCsv(bytes);
+        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft);
+        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight);
+        tvSelectedBus.setText(GeneralHelper.getBusNumber(pm.getBusName()));
+
+        plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
+        plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
+
+        capat1Title = leavingTimes.get(Factory.NUME_CAPETE).get(0);
+        capat2Title = leavingTimes.get(Factory.NUME_CAPETE).get(1);
+        tvBusCapat1.setText(capat1Title);
+        tvBusCapat2.setText(capat2Title);
     }
 
     private void refreshUIButtons(){
@@ -345,7 +442,7 @@ public class MapsActivity extends AppCompatActivity
 
         switch (id) {
             case R.id.refresh_rate:
-                ApiClient.getInstance().getStations(MapsActivity.this);
+                ApiClient.getInstance().getStations(getStationsCallback);
                 break;
             case R.id.hot_cold_margins:
                 SettingsDialogs.getInstance().showMarginsDialog(MapsActivity.this, this);
@@ -386,39 +483,6 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
-    }
-
-    @Override
-    public void onSuccessBikeStations(ArrayList<BikeStation> stationsArray) {
-        this.mStationsArray = stationsArray;
-        Collections.sort(this.mStationsArray);
-
-        Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_LONG).show();
-
-        mMapInfoWindowsAdapter.notifyDataSetChanged(mStationsArray);
-        setUpMap();
-        SettingsDialogs.getInstance().updateOverallStats(MapsActivity.this, mStationsArray);
-    }
-
-    @Override
-    public void onSuccessBusTimes(byte[] binaryData) {
-
-        HashMap<String, ArrayList<String>> leavingTimes = Factory.getInstance().readCsv(binaryData);
-        PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
-
-        pm.setBusSchedule(this, binaryData);
-
-        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft);
-        setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight);
-        tvSelectedBus.setText(GeneralHelper.getBusNumber(pm.getBusName()));
-
-        plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
-        plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
-
-        capat1Title = leavingTimes.get(Factory.NUME_CAPETE).get(0);
-        capat2Title = leavingTimes.get(Factory.NUME_CAPETE).get(1);
-        tvBusCapat1.setText(capat1Title);
-        tvBusCapat2.setText(capat2Title);
     }
 
     private void setTextsInBusBar(ArrayList<String> minTexts, LinearLayout parent){
@@ -471,7 +535,6 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    @Override
     public void onApiCallFail(int errorCode) {
         trace(errorCode + " error code");
         switch (errorCode){
@@ -593,7 +656,7 @@ public class MapsActivity extends AppCompatActivity
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                ApiClient.getInstance().getBusSchedule(MapsActivity.this, persistenceManager.getBusName());
+                                ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, persistenceManager.getBusName());
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
