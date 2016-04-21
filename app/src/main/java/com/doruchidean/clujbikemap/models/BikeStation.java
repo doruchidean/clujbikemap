@@ -8,10 +8,30 @@ import android.support.annotation.NonNull;
  */
 public class BikeStation implements Comparable<BikeStation>{
 
-    public String address, lastSyncDate, stationName, stationStatus, statusType;
-    public boolean customIsValid, isValid, isFavourite;
-    public int emptySpots, id, idStatus, maximumNumberOfBikes, occupiedSpots;
-    public double latitude, longitude;
+    public String
+            address,
+            lastSyncDate,
+            stationName,
+            stationStatus,
+            statusType,
+            distanceSteps,
+            distanceMinutes;
+
+    public boolean
+            customIsValid,
+            isValid,
+            isFavourite;
+
+    public int
+            emptySpots,
+            id,
+            idStatus,
+            maximumNumberOfBikes,
+            occupiedSpots;
+
+    public double
+            latitude,
+            longitude;
 
     @Override
     public int compareTo(@NonNull BikeStation another) {

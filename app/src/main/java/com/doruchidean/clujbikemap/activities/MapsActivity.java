@@ -118,28 +118,7 @@ public class MapsActivity extends AppCompatActivity
         );
 
         mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
-
-//        ApiClient.getInstance().getDistance(
-//                "Strada+Gruia+nr+2,+Cluj",
-//                "Strada+Tulcea+20,+Cluj",
-//                getString(R.string.google_distance_key),
-//                getDistanceCallback); //todo testin only
     }
-
-    private Callback getDistanceCallback = new Callback() {
-        @Override public void onFailure(Call call, IOException e) {
-            trace(call.toString() + " e: " + e.getMessage());
-        }
-
-        @Override public void onResponse(Call call, Response response) throws IOException {
-            try {
-                JSONObject j = new JSONObject(response.body().string());
-                trace("success " + j.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    };
 
     @Override
     protected void onResume() {
@@ -325,14 +304,49 @@ public class MapsActivity extends AppCompatActivity
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 mMap.setMyLocationEnabled(true);
-
                 mMap.setOnInfoWindowClickListener(this);
                 mMap.setInfoWindowAdapter(mMapInfoWindowsAdapter);
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
+                mMap.setOnMarkerClickListener(onMarkerClickListener);
+
                 setUpMap();
             }
         }
     }
+
+    private GoogleMap.OnMarkerClickListener onMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
+        @Override public boolean onMarkerClick(final Marker marker) {
+            ApiClient.getInstance().getDistance(
+                    userLatitude + "," + userLongitude,
+                    String.valueOf(marker.getPosition().latitude) + ","+
+                            String.valueOf(marker.getPosition().longitude),
+                    getString(R.string.google_distance_key),
+                    new Callback() {
+                        @Override public void onFailure(Call call, IOException e) {
+                            trace("fail getDistance: " + e.getMessage());
+                        }
+
+                        @Override public void onResponse(Call call, Response response) throws IOException {
+
+                            final String[] distance = GeneralHelper.getDistanceFromResponse(response);
+
+                            if (distance[0] != null) {
+                                MapsActivity.this.runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
+                                        mStationsArray.get(mStationsArray.indexOf(station)).distanceMinutes = distance[1];
+                                        mStationsArray.get(mStationsArray.indexOf(station)).distanceSteps= distance[0];
+
+                                        marker.showInfoWindow();
+                                    }
+                                });
+                            }
+                        }
+                    }
+            );
+            return false;
+        }
+    };
 
     private void createMarkers(){
         MarkerOptions markerOptions;

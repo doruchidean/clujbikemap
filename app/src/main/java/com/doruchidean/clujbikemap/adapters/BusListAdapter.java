@@ -49,7 +49,7 @@ public class BusListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         if(convertView == null){
-            convertView = View.inflate(mContext, R.layout.view_cell_bus, null);
+            convertView = View.inflate(mContext, R.layout.cell_bus, null);
         }
         TextView tv= (TextView) convertView.findViewById(R.id.tv_cell_bus);
         tv.setText(mList.get(position));

@@ -5,8 +5,15 @@ import android.util.DisplayMetrics;
 
 import com.doruchidean.clujbikemap.models.BikeStation;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import okhttp3.Response;
 
 /**
  * Created by Doru on 18/04/16.
@@ -85,6 +92,26 @@ public class GeneralHelper {
     if(result.length() == 1){
       result = String.format(" > %s min", maxMinutes);
     }
+    return result;
+  }
+
+  public static String[] getDistanceFromResponse(Response response){
+    String[] result = new String[2];
+
+    try {
+      JSONObject j = new JSONObject(response.body().string());
+      JSONArray rows = j.getJSONArray("rows");
+      JSONObject route1 = rows.getJSONObject(0);
+      JSONArray elements = route1.getJSONArray("elements");
+      JSONObject element1 = elements.getJSONObject(0);
+      JSONObject distance = element1.getJSONObject("distance");
+      result[0] = String.valueOf((int)(distance.getLong("value")*1.31));
+      JSONObject duration = element1.getJSONObject("duration");
+      result[1] = duration.getString("text");
+    } catch (JSONException | IOException e) {
+      e.printStackTrace();
+    }
+
     return result;
   }
 

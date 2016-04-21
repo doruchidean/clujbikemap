@@ -24,6 +24,7 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
 
   private Context mContext;
   private ArrayList<BikeStation> mStationsArray;
+  private String mDistanceSteps, mDistanceMins;
 
   public GoogleMapsInfoWindowAdapter(Context context, ArrayList<BikeStation> list){
     mContext = context;
@@ -44,10 +45,11 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
       return null;
     }
 
+
     PersistenceManager pm = PersistenceManager.getInstance(mContext);
     MapsActivity.trace("getInfoWindow");
 
-    View rootView = View.inflate(mContext, R.layout.dialog_station, null);
+    View rootView = View.inflate(mContext, R.layout.info_window_station, null);
 
     GradientDrawable bg = (GradientDrawable) rootView.getBackground();
     int strokeSize = GeneralHelper.getPixelsForDP(mContext, 3);
@@ -61,12 +63,21 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
       bg.setStroke(strokeSize, mContext.getResources().getColor(R.color.station_red));
     }
 
-    TextView stationDialogName = (TextView) rootView.findViewById(R.id.tvDialogName);
+    if (station.distanceMinutes != null) {
+      TextView tvSteps = (TextView) rootView.findViewById(R.id.tv_station_steps);
+      tvSteps.setText(station.distanceSteps);
+      tvSteps.setVisibility(View.VISIBLE);
+      TextView tvMins = (TextView) rootView.findViewById(R.id.tv_station_minutes);
+      tvMins.setText(station.distanceMinutes);
+      tvMins.setVisibility(View.VISIBLE);
+    }
+
+    TextView stationDialogName = (TextView) rootView.findViewById(R.id.tv_station_name);
     TextView stationDialogAddress = (TextView) rootView.findViewById(R.id.tvDialogAddress);
     TextView stationDialogEmptySpots = (TextView) rootView.findViewById(R.id.tvEmptySpots);
     TextView stationDialogOccupiedSpots = (TextView) rootView.findViewById(R.id.tvOcuppiedSpots);
     TextView stationDialogStatus = (TextView) rootView.findViewById(R.id.tvStatus);
-    ImageView stationDialogFavouriteButton = (ImageView) rootView.findViewById(R.id.btn_add_favourite);
+    ImageView stationDialogFavouriteButton = (ImageView) rootView.findViewById(R.id.ic_is_favourite);
 
     stationDialogName.setText(station.stationName);
     stationDialogAddress.setText(station.address);
