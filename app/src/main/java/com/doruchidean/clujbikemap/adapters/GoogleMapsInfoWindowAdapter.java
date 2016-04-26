@@ -1,9 +1,9 @@
 package com.doruchidean.clujbikemap.adapters;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.doruchidean.clujbikemap.R;
@@ -24,7 +24,6 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
 
   private Context mContext;
   private ArrayList<BikeStation> mStationsArray;
-  private String mDistanceSteps, mDistanceMins;
 
   public GoogleMapsInfoWindowAdapter(Context context, ArrayList<BikeStation> list){
     mContext = context;
@@ -77,17 +76,17 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
     TextView stationDialogEmptySpots = (TextView) rootView.findViewById(R.id.tvEmptySpots);
     TextView stationDialogOccupiedSpots = (TextView) rootView.findViewById(R.id.tvOcuppiedSpots);
     TextView stationDialogStatus = (TextView) rootView.findViewById(R.id.tvStatus);
-    ImageView stationDialogFavouriteButton = (ImageView) rootView.findViewById(R.id.ic_is_favourite);
 
     stationDialogName.setText(station.stationName);
     stationDialogAddress.setText(station.address);
     stationDialogEmptySpots.setText(String.format("Locuri libere: %s", station.emptySpots));
     stationDialogOccupiedSpots.setText(String.format("Biciclete disponibile: %s", station.occupiedSpots));
     stationDialogStatus.setText(String.format("Status: %s", station.statusType));
-    stationDialogFavouriteButton.setBackgroundResource(
-            station.isFavourite ?
-                    R.drawable.ic_favourite_station : R.drawable.ic_not_favourite_station
-    );
+
+    Drawable isFavourite = mContext.getResources().getDrawable(
+            station.isFavourite ? R.drawable.ic_favourite_station : R.drawable.ic_not_favourite_station);
+
+    stationDialogName.setCompoundDrawablesWithIntrinsicBounds(null, null, isFavourite, null);
 
     return rootView;
   }

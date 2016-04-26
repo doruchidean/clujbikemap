@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ClujBike Map</string>
     <string name="title_activity_maps">ClujBike Map</string>
-    <string name="failure_getting_stations">There was a server error while getting the stations.</string>
+    <string name="failure_getting_stations">There was a server error while getting the stations.(Server might be down)</string>
     <string name="dialog_open_settings">You need an internet connection</string>
     <string name="toast_up_to_date">Up to date</string>
     <string name="contact_developer">App Developer: doru.chidean@gmail.com</string>
@@ -11,7 +11,7 @@
     <string name="dialog_margins_hot">Hot Margin: </string>
     <string name="confirm_exit_application">Press BACK again to exit </string>
     <string name="toast_no_favourites">You have not marked any station as favourite.</string>
-    <string name="alarm_on">Countdown started</string>
+    <string name="alarm_on">Countdown started! (%s min)</string>
     <string name="alarm_off">Countdown CANCELED!</string>
     <string name="notification_text">Countdown ended (%1$d:%2$d)</string>
     <string name="dialog_timer_limit_title">Timer limit</string>
@@ -36,6 +36,9 @@
     <string name="bus_schedule_not_found">The bus might not operate today!</string>
 
     <string name="google_distance_key">AIzaSyAnwWN9iGxuUJXh398GAPBrFZE1GWZGhYE</string>
+    <string name="bus_bar_capat1_info_label">1.Tap the bus icon to add one bus</string>
+    <string name="bus_bar_capat2_info_label">2.Tap here to open today\'s timetable</string>
+    <string name="bus_bar_add_btn_label">Add</string>
 
     <string-array name="available_buses">
 

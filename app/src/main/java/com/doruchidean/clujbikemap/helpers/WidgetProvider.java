@@ -40,8 +40,8 @@ public class WidgetProvider extends AppWidgetProvider {
         //start alarm service to update the widget regularly
         SettingsDialogs.getInstance().setAlarmForWidgetUpdate(
                 context,
-                GeneralHelper.getMillisForDisplayedValue(
-                        PersistenceManager.getInstance(context).getWidgetUpdateInterval()
+                GeneralHelper.getMillisForWidgetDisplayedValue(
+                        PersistenceManager.getInstance(context).getWidgetPickerValue()
                 )
         );
 

@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     tools:context=".activities.MapsActivity">
 
-    <fragment android:id="@+id/map"
+    <fragment
+        android:id="@+id/map"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:layout_above="@+id/bus_bar"
@@ -19,16 +20,23 @@
         android:layout_alignParentEnd="true"
         android:layout_marginRight="56dp"
         android:layout_marginEnd="56dp"
-        android:layout_marginTop="5dp"/>
+        android:layout_marginTop="4dp"/>
 
-    <ImageButton android:id="@+id/btn_timer"
+    <TextView
+        android:id="@+id/btn_timer"
         android:onClick="onClick"
+        android:clickable="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/ic_timer"
+        android:background="@drawable/ic_timer_pressed"
         android:layout_toLeftOf="@id/btn_show_favourites"
         android:layout_toStartOf="@id/btn_show_favourites"
-        android:layout_marginTop="5dp"/>
+        android:layout_marginTop="4dp"
+        android:paddingTop="4dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        />
 
     <LinearLayout android:id="@id/bus_bar"
         android:layout_width="match_parent"
@@ -58,7 +66,7 @@
                     android:layout_width="wrap_content"
                     android:textColor="@color/white"
                     android:singleLine="true"
-                    android:text="1.Tap the bus icon to add one bus"/>
+                    android:text="@string/bus_bar_capat1_info_label"/>
 
                 <LinearLayout android:id="@+id/ll_times_left"
                     android:layout_width="match_parent"
@@ -81,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:textColor="@color/white"
                     android:singleLine="true"
-                    android:text="2.Tap here to open the full timetable"/>
+                    android:text="@string/bus_bar_capat2_info_label"/>
 
                 <LinearLayout android:id="@+id/ll_times_right"
                     android:layout_width="match_parent"
@@ -104,7 +112,7 @@
             android:background="@drawable/ic_bus"
             android:paddingBottom="6dp"
             android:gravity="center"
-            android:text="Add"
+            android:text="@string/bus_bar_add_btn_label"
             android:textColor="@color/white"/>
     </LinearLayout>
 

@@ -10,8 +10,7 @@ import java.util.Collections;
 
 /**
  * Created by Doru on 07/01/16.
- * This class manages values stored locally for persistence purposes.
- * Needs to be initialized once per app, with a context passed, before usage
+ *
  */
 public class PersistenceManager {
 
@@ -42,12 +41,15 @@ public class PersistenceManager {
     private int
             mColdLimit,
             mHotLimit,
-            mTimerMinutes,
+            mTimerValueIndex,
             mWidgetUpdateInterval,
             mWidgetId;
 
     private String mBusName;
 
+    //todo update pattern: delete save/load methods and add independent handling for each getter and setter
+    //todo replace context dependency in constructor and add it as dependency in getters/setters
+    //todo FOLLOW EXAMPLE setBusSchedule and remove the static mInstance field
     private PersistenceManager(Context context){
 
         //load data
@@ -63,10 +65,10 @@ public class PersistenceManager {
         mIsCountingDown = sp.getBoolean(IS_COUNTING_DOWN, false);
         mColdLimit = sp.getInt(COLD_LIMIT, 3);
         mHotLimit = sp.getInt(HOT_LIMIT, 3);
-        mTimerMinutes = sp.getInt(TIMER_MINUTES, 45);
+        mTimerValueIndex = sp.getInt(TIMER_MINUTES, 2);
         mBusName = sp.getString(BUSES, "");
         mWidgetUpdateInterval = sp.getInt(WIDGET_UPDATE_INTERVAL, 3);
-        mShowBusBar = sp.getBoolean(SHOW_BUS_BAR, true);
+        mShowBusBar = sp.getBoolean(SHOW_BUS_BAR, false);
         mWidgetId = sp.getInt(WIDGET_ID, 0);
     }
 
@@ -83,7 +85,7 @@ public class PersistenceManager {
         editor.putBoolean(SHOWS_FAVOURITES_ONLY, showFavouritesOnly);
         editor.putInt(COLD_LIMIT, mColdLimit);
         editor.putInt(HOT_LIMIT, mHotLimit);
-        editor.putInt(TIMER_MINUTES, mTimerMinutes);
+        editor.putInt(TIMER_MINUTES, mTimerValueIndex);
         editor.putBoolean(IS_COUNTING_DOWN, mIsCountingDown);
         editor.putString(BUSES, mBusName);
         editor.putInt(WIDGET_UPDATE_INTERVAL, mWidgetUpdateInterval);
@@ -124,12 +126,12 @@ public class PersistenceManager {
         this.showFavouritesOnly = showFavouritesOnly;
     }
 
-    public int getTimerMinutes() {
-        return mTimerMinutes;
+    public int getTimerValueIndex() {
+        return mTimerValueIndex;
     }
 
-    public void setTimerMinutes(int mTimerMinutes) {
-        this.mTimerMinutes = mTimerMinutes;
+    public void setTimerValueIndex(int mTimerMinutes) {
+        this.mTimerValueIndex = mTimerMinutes;
     }
 
     public boolean getShowFavouritesOnly() {
@@ -195,11 +197,11 @@ public class PersistenceManager {
         return result;
     }
 
-    public void setWidgetUpdateInterval(int interval){
+    public void setWidgetPickerValue(int interval){
         mWidgetUpdateInterval = interval;
     }
 
-    public int getWidgetUpdateInterval() {
+    public int getWidgetPickerValue() {
         return mWidgetUpdateInterval;
     }
 

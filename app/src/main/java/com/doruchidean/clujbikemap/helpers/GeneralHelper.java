@@ -21,7 +21,9 @@ import okhttp3.Response;
  */
 public class GeneralHelper {
 
-  public static final int minMinutes = 0, maxMinutes=45;
+  public static final int busLeavingMinOffset = 0, busLeavingMaxOffset = 45;
+  public static final int[] TIMER_VALUES = {30,35,40,45,50,55};
+  public static final int[] WIDGET_UPDATE_HOUR_INTERVALS = {1,2,3,4,5,6,7,8,12,24};
 
   public static BikeStation binarySearchStation(String markerTitleToFind, ArrayList<BikeStation> list){
 
@@ -90,7 +92,7 @@ public class GeneralHelper {
     }
 
     if(result.length() == 1){
-      result = String.format(" > %s min", maxMinutes);
+      result = String.format(" > %s min", busLeavingMaxOffset);
     }
     return result;
   }
@@ -127,7 +129,7 @@ public class GeneralHelper {
       int busTimeSeconds = busHour * 60 * 60 + busMin * 60;
       int timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
 
-      if (timeDifference>=minMinutes && timeDifference <= maxMinutes) {
+      if (timeDifference>= busLeavingMinOffset && timeDifference <= busLeavingMaxOffset) {
 
         if (requiresMinutes) {
           return String.valueOf(timeDifference);
@@ -139,25 +141,29 @@ public class GeneralHelper {
     return null;
   }
 
-  public static int getMillisForDisplayedValue(int pickerVal){
-    int result;
-
-    if(pickerVal == 2){
-      result = 45;
-    }else if(pickerVal == 3){
-      result = 60;
-    }else if(pickerVal == 4){
-      result = 4*60;
-    }else if(pickerVal == 5){
-      result = 8*60;
-    }else if(pickerVal == 6){
-      result = 12*60;
-    }else if(pickerVal == 7){
-      result = 24*60;
-    }else{
-      result = 30;
+  public static String[] getTimerPickerDisplayedValues(){
+    int length = TIMER_VALUES.length;
+    String[] result = new String[length];
+    for (int i = 0; i < length; i++) {
+      result[i] = String.valueOf(TIMER_VALUES[i]) + " min";
     }
+    return result;
+  }
 
-    return result*60*1000;
+  public static String[] getWidgetPickerDisplayedValues(){
+    int length = WIDGET_UPDATE_HOUR_INTERVALS.length;
+    String[] result = new String[length];
+    for (int i = 0; i < length; i++) {
+      result[i] = String.valueOf(WIDGET_UPDATE_HOUR_INTERVALS[i]) + " hours";
+    }
+    return result;
+  }
+
+  public static int getMinutesForTimerDisplayedValue(int timerPickerValue){
+    return TIMER_VALUES[timerPickerValue];
+  }
+
+  public static int getMillisForWidgetDisplayedValue(int widgetPickerValue){
+    return WIDGET_UPDATE_HOUR_INTERVALS[widgetPickerValue]*60*60*1000;
   }
 }

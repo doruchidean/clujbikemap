@@ -13,6 +13,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -61,6 +62,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -87,11 +89,12 @@ public class MapsActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private double userLatitude = 46.775627, userLongitude = 23.590935;
 
-    private ImageButton btnShowFavourites, btnTimer;
-    private TextView tvBusCapat1, tvBusCapat2, tvSelectedBus;
+    private ImageButton btnShowFavourites;
+    private TextView btnTimer, tvBusCapat1, tvBusCapat2, tvSelectedBus;
     private LinearLayout llTimesLeft, llTimesRight;
     private LinearLayout mBusBar;
     private GoogleMapsInfoWindowAdapter mMapInfoWindowsAdapter;
+    private CountDownTimer mCountDownTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +107,7 @@ public class MapsActivity extends AppCompatActivity
         setContentView(R.layout.activity_maps);
 
         btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
-        btnTimer = (ImageButton) findViewById(R.id.btn_timer);
+        btnTimer = (TextView) findViewById(R.id.btn_timer);
         tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
         tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
         tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
@@ -124,6 +127,10 @@ public class MapsActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        refreshPage();
+    }
+
+    private void refreshPage(){
         if (!hasGooglePlayServicesAvailable()) return;
 
         if (!hasNetworkConnection()) {
@@ -134,7 +141,7 @@ public class MapsActivity extends AppCompatActivity
         ApiClient.getInstance().getStations(getStationsCallback);
 
         PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
-        if(pm.getBusName().length() > 0){
+        if(pm.getBusName().length() > 0 && pm.getShowBusBar()){
             ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, pm.getBusName());
         }
 
@@ -147,7 +154,11 @@ public class MapsActivity extends AppCompatActivity
 
     private Callback getStationsCallback = new Callback() {
         @Override public void onFailure(Call call, IOException e) {
-            trace("fail getStations " + e.getMessage());
+            MapsActivity.this.runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations), Toast.LENGTH_LONG).show();
+                }
+            });
         }
 
         @Override public void onResponse(Call call, Response response) throws IOException {
@@ -218,8 +229,13 @@ public class MapsActivity extends AppCompatActivity
         PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
         btnShowFavourites.setBackgroundResource(pm.getShowFavouritesOnly() ?
                 R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
-        btnTimer.setBackgroundResource(pm.getIsCountingDown() ?
-                R.drawable.ic_timer_pressed : R.drawable.ic_timer);
+
+        if(pm.getIsCountingDown()){
+            btnTimer.setBackgroundResource(R.drawable.ic_timer_pressed);
+        }else{
+            btnTimer.setBackgroundResource(R.drawable.ic_timer);
+            btnTimer.setText("");
+        }
     }
 
     private void askForInternetConnection() {
@@ -333,11 +349,13 @@ public class MapsActivity extends AppCompatActivity
                             if (distance[0] != null) {
                                 MapsActivity.this.runOnUiThread(new Runnable() {
                                     public void run() {
-                                        BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
-                                        mStationsArray.get(mStationsArray.indexOf(station)).distanceMinutes = distance[1];
-                                        mStationsArray.get(mStationsArray.indexOf(station)).distanceSteps= distance[0];
+                                        if (marker.isInfoWindowShown()) {
+                                            BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
+                                            mStationsArray.get(mStationsArray.indexOf(station)).distanceMinutes = distance[1];
+                                            mStationsArray.get(mStationsArray.indexOf(station)).distanceSteps= distance[0];
 
-                                        marker.showInfoWindow();
+                                            marker.showInfoWindow();
+                                        }
                                     }
                                 });
                             }
@@ -382,6 +400,8 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public void setUpMap() {
+
+        if(mMap == null) return;
 
         mMap.clear();
         mapMarkers.clear();
@@ -455,8 +475,8 @@ public class MapsActivity extends AppCompatActivity
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.refresh_rate:
-                ApiClient.getInstance().getStations(getStationsCallback);
+            case R.id.btn_refresh:
+                refreshPage();
                 break;
             case R.id.hot_cold_margins:
                 SettingsDialogs.getInstance().showMarginsDialog(MapsActivity.this, this);
@@ -515,7 +535,7 @@ public class MapsActivity extends AppCompatActivity
             tvSubtitle.setText(getString(R.string.bus_bar_subtitle_to_be_filled));
             tvSubtitle.setPadding(0,0,padding2dp,0);
         } else {
-            tvSubtitle.setText(String.format(getString(R.string.bus_bar_subtitle_full), GeneralHelper.maxMinutes));
+            tvSubtitle.setText(String.format(getString(R.string.bus_bar_subtitle_full), GeneralHelper.busLeavingMaxOffset));
         }
         parent.addView(tvSubtitle);
 
@@ -555,6 +575,7 @@ public class MapsActivity extends AppCompatActivity
             case (404):
                 Toast.makeText(MapsActivity.this, getString(R.string.failure_page_not_found), Toast.LENGTH_LONG).show();
                 tvBusCapat1.setText(getString(R.string.bus_schedule_not_found));
+                tvBusCapat2.setText("");
                 break;
             default:
                 Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations), Toast.LENGTH_LONG).show();
@@ -612,29 +633,44 @@ public class MapsActivity extends AppCompatActivity
                 setUpMap();
                 break;
             case (R.id.btn_timer):
-
                 AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                 Intent notificationHandlerIntent = new Intent(this, NotificationHandler.class);
                 PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(this, RESULT_OK, notificationHandlerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
                 if (!persistenceManager.getIsCountingDown()) {
 
-                    int minutes = GeneralHelper.getMillisForDisplayedValue(persistenceManager.getTimerMinutes());
+                    //test getMinutesForDisplayed is correct method
+                    int minutes = GeneralHelper.getMinutesForTimerDisplayedValue(persistenceManager.getTimerValueIndex());
                     long alarmTime = SystemClock.elapsedRealtime()
                             + 1000 * 60 * minutes;
 
                     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, alarmTime, alarmPendingIntent);
                     persistenceManager.setIsCountingDown(true);
 
-                    Toast.makeText(MapsActivity.this, getString(R.string.alarm_on), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MapsActivity.this, String.format(getString(R.string.alarm_on), minutes), Toast.LENGTH_SHORT).show();
+
+                    trace("set @ --:" + Calendar.getInstance().get(Calendar.MINUTE));
+                    btnTimer.setText(String.valueOf(minutes));
+                    mCountDownTimer = new CountDownTimer(minutes*60*1000, 1000) {
+                        @Override public void onTick(long millisUntilFinished) {
+                            trace("onTick: " + millisUntilFinished/(1000));
+                            btnTimer.setText(String.format(
+                                    "%s:%s",
+                                    millisUntilFinished/(60*1000),
+                                    (millisUntilFinished/1000)%60));
+                        }
+
+                        @Override public void onFinish() {
+                            trace("onFinish");
+                            refreshUIButtons();
+                        }
+                    };
+                    mCountDownTimer.start();
                 }else{
                     alarmManager.cancel(alarmPendingIntent);
-
                     persistenceManager.setIsCountingDown(false);
-
+                    if(mCountDownTimer != null) mCountDownTimer.cancel();
                     Toast.makeText(MapsActivity.this, getString(R.string.alarm_off), Toast.LENGTH_SHORT).show();
                 }
-
                 break;
             case (R.id.btn_select_bus):
 
@@ -731,7 +767,13 @@ public class MapsActivity extends AppCompatActivity
 
         backPressedCount ++;
         if(backPressedCount == 2){
-            super.onBackPressed();
+            if (PersistenceManager.getInstance(MapsActivity.this).getIsCountingDown()) {
+                Intent i = new Intent(Intent.ACTION_MAIN);
+                i.addCategory(Intent.CATEGORY_HOME);
+                startActivity(i);
+            } else {
+                super.onBackPressed();
+            }
             return;
         }
         Handler h = new Handler();

@@ -30,8 +30,6 @@ public class SettingsDialogs {
 
     private static SettingsDialogs ourInstance;
     private int overallBikes, overallSpots, overallTotal;
-    private String[] pickerDisplayedValues =
-            new String[]{"30 min", "45 min", "60 min", "4 hours", "8 hours", "12 hours", "24 hours"};
 
     private SettingsDialogs(){
     }
@@ -207,15 +205,15 @@ public class SettingsDialogs {
     public void showTimerLimitDialog(Context context){
 
         final PersistenceManager persistenceManager = PersistenceManager.getInstance(context);
-        final int[] timerLimit = {persistenceManager.getTimerMinutes()};
+        final int[] timerLimit = {persistenceManager.getTimerValueIndex()};
 
         View dialogContainer = View.inflate(context, R.layout.dialog_timer_limit, null);
 
         NumberPicker picker = (NumberPicker) dialogContainer.findViewById(R.id.picker_dialog_timer);
         picker.setMinValue(1);
-        picker.setMaxValue(pickerDisplayedValues.length);
-        picker.setDisplayedValues(pickerDisplayedValues);
-        picker.setValue(persistenceManager.getTimerMinutes());
+        picker.setMaxValue(GeneralHelper.TIMER_VALUES.length);
+        picker.setDisplayedValues(GeneralHelper.getTimerPickerDisplayedValues());
+        picker.setValue(timerLimit[0]);
         picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
@@ -231,7 +229,7 @@ public class SettingsDialogs {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        persistenceManager.setTimerMinutes(timerLimit[0]);
+                        persistenceManager.setTimerValueIndex(timerLimit[0]);
 
                         dialog.dismiss();
                     }
@@ -243,14 +241,14 @@ public class SettingsDialogs {
     public void showWidgetUpdateTimeDialog(final Context context) {
 
         final PersistenceManager persistenceManager = PersistenceManager.getInstance(context);
-        final int[] updateTime = {persistenceManager.getWidgetUpdateInterval()};
+        final int[] updateTime = {persistenceManager.getWidgetPickerValue()};
 
         View dialogContainer = View.inflate(context, R.layout.dialog_widget_update_time, null);
         NumberPicker picker = (NumberPicker) dialogContainer.findViewById(R.id.picker_dialog_widget_time);
         picker.setMinValue(1);
-        picker.setMaxValue(pickerDisplayedValues.length);
+        picker.setMaxValue(GeneralHelper.WIDGET_UPDATE_HOUR_INTERVALS.length);
         picker.setValue(updateTime[0]);
-        picker.setDisplayedValues(pickerDisplayedValues);
+        picker.setDisplayedValues(GeneralHelper.getWidgetPickerDisplayedValues());
         picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
@@ -267,10 +265,10 @@ public class SettingsDialogs {
 
                         setAlarmForWidgetUpdate(
                                 context,
-                                GeneralHelper.getMillisForDisplayedValue(updateTime[0])
+                                GeneralHelper.getMillisForWidgetDisplayedValue(updateTime[0])
                         );
 
-                        persistenceManager.setWidgetUpdateInterval(updateTime[0]);
+                        persistenceManager.setWidgetPickerValue(updateTime[0]);
                         dialog.dismiss();
                     }
                 })
