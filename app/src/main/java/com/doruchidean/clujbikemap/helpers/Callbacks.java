@@ -5,8 +5,7 @@ package com.doruchidean.clujbikemap.helpers;
  *
  */
 public interface Callbacks {
-    interface SettingsDialogsCallback{
-        void setUpMap();
-    }
-
+	interface SettingsDialogsCallback{
+		void setUpMap();
+	}
 }

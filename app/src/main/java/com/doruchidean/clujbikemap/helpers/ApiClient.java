@@ -15,68 +15,69 @@ import okhttp3.Request;
  */
 public class ApiClient {
 
-  private static ApiClient instance = new ApiClient();
-//  private String login = "/logare"; //todo vezi daca il poti folosi
+	private static ApiClient instance = new ApiClient();
+	//  private String login = "/logare"; //todo vezi daca il poti folosi
 //  private String getCardDetails="/CTIInformation/ReadTransactionDetails/"; //todo vezi daca functioneaza callu asta
-  private final OkHttpClient client;
+	private final OkHttpClient client;
 
-  public ApiClient(){
-    client = new OkHttpClient();
-  }
+	public ApiClient(){
+		client = new OkHttpClient();
+	}
 
-  public static ApiClient getInstance(){
-    return instance;
-  }
+	public static ApiClient getInstance(){
+		return instance;
+	}
 
-  public void getStations(Callback callback){
-    String baseUrl = "http://84.232.185.103";
-    String getStations = "/Station/Read";
-    trace("get stations: " + baseUrl + getStations);
+	public void getStations(Callback callback){
+		String baseUrl = "http://84.232.185.103";
+		String getStations = "/Station/Read";
+		trace("get stations: " + baseUrl + getStations);
 
-    Request request = new Request.Builder()
-            .url(baseUrl + getStations)
-            .post(new FormBody.Builder().build())
-            .build();
-    Call call = client.newCall(request);
-    call.enqueue(callback);
-  }
+		Request request = new Request.Builder()
+			.url(baseUrl + getStations)
+			.post(new FormBody.Builder().build())
+			.build();
+		Call call = client.newCall(request);
+		call.enqueue(callback);
+	}
 
-  public void getBusSchedule(Callback callback, String bus){
 
-    String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
-    String url = GeneralHelper.resolveBusInUrl(bus, busUrl);
+	public void getBusSchedule(Callback callback, String bus){
 
-    trace("getting bus " + bus + " at: " + url);
-    Request request = new Request.Builder()
-            .url(url)
-            .build();
-    Call response = client.newCall(request);
-    response.enqueue(callback);
+		String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
+		String url = GeneralHelper.resolveBusInUrl(bus, busUrl);
 
-  }
+		trace("getting bus " + bus + " at: " + url);
+		Request request = new Request.Builder()
+			.url(url)
+			.build();
+		Call response = client.newCall(request);
+		response.enqueue(callback);
 
-  public void getDistance(String from, String to, String key, Callback callback){
-    HttpUrl url = new HttpUrl.Builder()
-            .scheme("https")
-            .host("maps.googleapis.com")
-            .addPathSegments("maps/api/distancematrix/json")
-            .addQueryParameter("origins", from)
-            .addQueryParameter("destinations", to)
-            .addQueryParameter("mode", "walking")
-            .addQueryParameter("key", key)
-            .build();
+	}
 
-    trace("getDistance:  " + url.toString());
+	public void getDistance(String from, String to, String key, Callback callback){
+		HttpUrl url = new HttpUrl.Builder()
+			.scheme("https")
+			.host("maps.googleapis.com")
+			.addPathSegments("maps/api/distancematrix/json")
+			.addQueryParameter("origins", from)
+			.addQueryParameter("destinations", to)
+			.addQueryParameter("mode", "walking")
+			.addQueryParameter("key", key)
+			.build();
 
-    Request request = new Request.Builder()
-            .url(url)
-            .build();
-    Call response = client.newCall(request);
-    response.enqueue(callback);
-  }
+		trace("getDistance:  " + url.toString());
 
-  private void trace(String s){
-    Log.d("traces", s);
-  }
+		Request request = new Request.Builder()
+			.url(url)
+			.build();
+		Call response = client.newCall(request);
+		response.enqueue(callback);
+	}
+
+	private void trace(String s){
+		Log.d("traces", s);
+	}
 
 }

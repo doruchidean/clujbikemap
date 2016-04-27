@@ -1,100 +1,100 @@
 <resources>
-    <string name="app_name">ClujBike Map</string>
-    <string name="title_activity_maps">ClujBike Map</string>
-    <string name="failure_getting_stations">There was a server error while getting the stations.(Server might be down)</string>
-    <string name="dialog_open_settings">You need an internet connection</string>
-    <string name="toast_up_to_date">Up to date</string>
-    <string name="contact_developer">App Developer: doru.chidean@gmail.com</string>
-    <string name="developer_email">doru.chidean@gmail.com</string>
-    <string name="contact_call_center">Call Center: 0371 784 172</string>
-    <string name="dialog_margins_cold">Cold Margin: </string>
-    <string name="dialog_margins_hot">Hot Margin: </string>
-    <string name="confirm_exit_application">Press BACK again to exit </string>
-    <string name="toast_no_favourites">You have not marked any station as favourite.</string>
-    <string name="alarm_on">Countdown started! (%s min)</string>
-    <string name="alarm_off">Countdown CANCELED!</string>
-    <string name="notification_text">Countdown ended (%1$d:%2$d)</string>
-    <string name="dialog_timer_limit_title">Timer limit</string>
-    <string name="dialog_add_buses_title">Select bus</string>
-    <string name="bus_bar_subtitle_full">leaving in more than %s min</string>
-    <string name="bus_bar_subtitle_to_be_filled">leaving in</string>
-    <string name="dialog_orar_complet">Orar Linia</string>
-    <string name="dialog_widget_update_time_title">Update Interval</string>
-    <string name="widget_default_text1">Select a bus inside</string>
-    <string name="widget_default_text2">ClujBike Map</string>
+  <string name="app_name">ClujBike Map</string>
+  <string name="title_activity_maps">ClujBike Map</string>
+  <string name="failure_getting_stations">There was a server error while getting the stations.(Server might be down)</string>
+  <string name="dialog_open_settings">You need an internet connection</string>
+  <string name="toast_up_to_date">Up to date</string>
+  <string name="contact_developer">App Developer: doru.chidean@gmail.com</string>
+  <string name="developer_email">doru.chidean@gmail.com</string>
+  <string name="contact_call_center">Call Center: 0371 784 172</string>
+  <string name="dialog_margins_cold">Cold Margin: </string>
+  <string name="dialog_margins_hot">Hot Margin: </string>
+  <string name="confirm_exit_application">Press BACK again to exit </string>
+  <string name="toast_no_favourites">You have not marked any station as favourite.</string>
+  <string name="alarm_on">Countdown started! (%s min)</string>
+  <string name="alarm_off">Countdown CANCELED!</string>
+  <string name="notification_text">Countdown ended (%1$d:%2$d)</string>
+  <string name="dialog_timer_limit_title">Timer limit</string>
+  <string name="dialog_add_buses_title">Select bus</string>
+  <string name="bus_bar_subtitle_full">leaving in more than %s min</string>
+  <string name="bus_bar_subtitle_to_be_filled">leaving in</string>
+  <string name="dialog_orar_complet">Orar Linia</string>
+  <string name="dialog_widget_update_time_title">Update Interval</string>
+  <string name="widget_default_text1">Select a bus inside</string>
+  <string name="widget_default_text2">ClujBike Map</string>
 
-    <string name="options_menu_hot_cold_margins">Hot/Cold Margins</string>
-    <string name="options_menu_contact">Contact</string>
-    <string name="options_menu_refresh_rate">Refresh</string>
-    <string name="options_menu_overall_stats">Status General</string>
-    <string name="options_menu_timer_limit">Timer Limit</string>
-    <string name="options_menu_widget_interval">Widget update time</string>
-    <string name="options_menu_show_bus_bar_label">Show Bus bar</string>
-    <string name="contact_facebook_label">Community support</string>
-    <string name="community_page_web_url">https://www.facebook.com/ClujBikeMap</string>
-    <string name="failure_page_not_found">Eroare 404. Not found!</string>
-    <string name="bus_schedule_not_found">The bus might not operate today!</string>
+  <string name="options_menu_hot_cold_margins">Hot/Cold Margins</string>
+  <string name="options_menu_contact">Contact</string>
+  <string name="options_menu_refresh_rate">Refresh</string>
+  <string name="options_menu_overall_stats">Status General</string>
+  <string name="options_menu_timer_limit">Timer Limit</string>
+  <string name="options_menu_widget_interval">Widget update time</string>
+  <string name="options_menu_show_bus_bar_label">Show Bus bar</string>
+  <string name="contact_facebook_label">Community support</string>
+  <string name="community_page_web_url">https://www.facebook.com/ClujBikeMap</string>
+  <string name="failure_page_not_found">Eroare 404. Not found!</string>
+  <string name="bus_schedule_not_found">The bus might not operate today!</string>
 
-    <string name="google_distance_key">AIzaSyAnwWN9iGxuUJXh398GAPBrFZE1GWZGhYE</string>
-    <string name="bus_bar_capat1_info_label">1.Tap the bus icon to add one bus</string>
-    <string name="bus_bar_capat2_info_label">2.Tap here to open today\'s timetable</string>
-    <string name="bus_bar_add_btn_label">Add</string>
+  <string name="google_distance_key">AIzaSyAnwWN9iGxuUJXh398GAPBrFZE1GWZGhYE</string>
+  <string name="bus_bar_capat1_info_label">1.Tap the bus icon to add one bus</string>
+  <string name="bus_bar_capat2_info_label">2.Tap here to open today\'s timetable</string>
+  <string name="bus_bar_add_btn_label">Add</string>
 
-    <string-array name="available_buses">
+  <string-array name="available_buses">
 
-        <item> 1: Str. Bucium - P-ta 1 Mai</item>
-        <item> 3: Str. Unirii - P-ţa Gării</item>
-        <item> 4: Str. A. Vlaicu - P-ţa Gării</item>
-        <item> 5: P-ţa Gării - Aeroport</item>
-        <item> 6: Str. Bucium - Str. A.Vlaicu</item>
-        <item> 7: Str. A.Vlaicu - Str. Izlazului</item>
-        <item> 8: P-ţa M.Viteazul - Str. T.Vuia</item>
-        <item> 8L: P-ta Mărăşti - AGRO</item>
-        <item> 9: Str. Bucium - P-ţa Gării</item>
-        <item> 19: P M.Viteazul - Str.Mehedinţi</item>
-        <item> 20: P. Şt.cel Mare - C. Borhanci</item>
-        <item> 21: P.M.Viteazul - C.Buna Ziua</item>
-        <item> 22: P-ţa Gării - Str. I. Moldovan</item>
-        <item> 23: Emerson - P.M.Viteazul</item>
-        <item> 24: Str. Unirii - Str. Bucium</item>
-        <item> 24B: Str. Unirii - Polus Center</item>
-        <item> 25: Str. Bucium - Str. Unirii</item>
-        <item> 25N: Str. Unirii - Str. Bucium</item>
-        <item> 26: C.Grigorescu - B-dul Muncii</item>
-        <item> 27: C.Grigorescu - P-ţa Gării</item>
-        <item> 28: C.Grigorescu - P.M.Viteazul</item>
-        <item> 28B: Polus Center - P.M.Viteazul</item>
-        <item> 29: Str. Bucium - P. M.Viteazul</item>
-        <item> 30: C.Grigorescu - Str. A.Vlaicu</item>
-        <item> 31: P.M.Viteazul - Cal. Baciului</item>
-        <item> 32: St.C.Brâncuşi-P.M.Viteazul</item>
-        <item> 32B: Str. C.Brâncuşi - P-ţa Gării</item>
-        <item> 33: Al. Băişoara - P.M.Viteazul</item>
-        <item> 34: Al. Băişoara - P-ţa 1 Mai</item>
-        <item> 35: Cart. Zorilor - P-ţa Gării</item>
-        <item> 36B: P.M.Viteazul - Str. I.I. Brad</item>
-        <item> 37: P.M.Viteazul - Str.R.Vuia</item>
-        <item> 38: P.M.Viteazul - Vânătorului</item>
-        <item> 39: P.M.Viteazul - V. Chintăului</item>
-        <item> 39L: P.M.Viteazul - Cătun</item>
-        <item> 40: P-ţa Ş.cel Mare - C.Faget</item>
-        <item> 40S: P-ţa Ş.cel Mare - C.Turzii</item>
-        <item> 41: C.Grigorescu - P-ța 1 Mai</item>
-        <item> 42: P.M.Viteazul - Str.Câmpului</item>
-        <item> 43: C.Grigorescu - C.Zorilor</item>
-        <item> 43B: C.Grigorescu - C.Turzii</item>
-        <item> 43P: Polus Center - C.Zorilor</item>
-        <item> 46: S.E.Ionesco - P.Șt.cel Mare</item>
-        <item> 46B: Cart. Zorilor - Str. A.Vlaicu</item>
-        <item> 47: P.M.Viteazul - Str.Harghitei</item>
-        <item> 47B: P-ța Gării - Str.Harghitei</item>
-        <item> 48: Al.Băișoara - B-dul Muncii</item>
-        <item> 50: C.Zorilor - B-dul Muncii</item>
-        <item> 52: Str. Bucium - Str. Plevnei</item>
-        <item> 87B: Str. Bucium - Polus Center</item>
-        <item> 100: P-ța Gării - B-dul Muncii</item>
-        <item> 101: Str. Bucium - P-ța Gării</item>
-        <item> 102: Str. Bucium - B-dul Muncii</item>
+    <item> 1: Str. Bucium - P-ta 1 Mai</item>
+    <item> 3: Str. Unirii - P-ţa Gării</item>
+    <item> 4: Str. A. Vlaicu - P-ţa Gării</item>
+    <item> 5: P-ţa Gării - Aeroport</item>
+    <item> 6: Str. Bucium - Str. A.Vlaicu</item>
+    <item> 7: Str. A.Vlaicu - Str. Izlazului</item>
+    <item> 8: P-ţa M.Viteazul - Str. T.Vuia</item>
+    <item> 8L: P-ta Mărăşti - AGRO</item>
+    <item> 9: Str. Bucium - P-ţa Gării</item>
+    <item> 19: P M.Viteazul - Str.Mehedinţi</item>
+    <item> 20: P. Şt.cel Mare - C. Borhanci</item>
+    <item> 21: P.M.Viteazul - C.Buna Ziua</item>
+    <item> 22: P-ţa Gării - Str. I. Moldovan</item>
+    <item> 23: Emerson - P.M.Viteazul</item>
+    <item> 24: Str. Unirii - Str. Bucium</item>
+    <item> 24B: Str. Unirii - Polus Center</item>
+    <item> 25: Str. Bucium - Str. Unirii</item>
+    <item> 25N: Str. Unirii - Str. Bucium</item>
+    <item> 26: C.Grigorescu - B-dul Muncii</item>
+    <item> 27: C.Grigorescu - P-ţa Gării</item>
+    <item> 28: C.Grigorescu - P.M.Viteazul</item>
+    <item> 28B: Polus Center - P.M.Viteazul</item>
+    <item> 29: Str. Bucium - P. M.Viteazul</item>
+    <item> 30: C.Grigorescu - Str. A.Vlaicu</item>
+    <item> 31: P.M.Viteazul - Cal. Baciului</item>
+    <item> 32: St.C.Brâncuşi-P.M.Viteazul</item>
+    <item> 32B: Str. C.Brâncuşi - P-ţa Gării</item>
+    <item> 33: Al. Băişoara - P.M.Viteazul</item>
+    <item> 34: Al. Băişoara - P-ţa 1 Mai</item>
+    <item> 35: Cart. Zorilor - P-ţa Gării</item>
+    <item> 36B: P.M.Viteazul - Str. I.I. Brad</item>
+    <item> 37: P.M.Viteazul - Str.R.Vuia</item>
+    <item> 38: P.M.Viteazul - Vânătorului</item>
+    <item> 39: P.M.Viteazul - V. Chintăului</item>
+    <item> 39L: P.M.Viteazul - Cătun</item>
+    <item> 40: P-ţa Ş.cel Mare - C.Faget</item>
+    <item> 40S: P-ţa Ş.cel Mare - C.Turzii</item>
+    <item> 41: C.Grigorescu - P-ța 1 Mai</item>
+    <item> 42: P.M.Viteazul - Str.Câmpului</item>
+    <item> 43: C.Grigorescu - C.Zorilor</item>
+    <item> 43B: C.Grigorescu - C.Turzii</item>
+    <item> 43P: Polus Center - C.Zorilor</item>
+    <item> 46: S.E.Ionesco - P.Șt.cel Mare</item>
+    <item> 46B: Cart. Zorilor - Str. A.Vlaicu</item>
+    <item> 47: P.M.Viteazul - Str.Harghitei</item>
+    <item> 47B: P-ța Gării - Str.Harghitei</item>
+    <item> 48: Al.Băișoara - B-dul Muncii</item>
+    <item> 50: C.Zorilor - B-dul Muncii</item>
+    <item> 52: Str. Bucium - Str. Plevnei</item>
+    <item> 87B: Str. Bucium - Polus Center</item>
+    <item> 100: P-ța Gării - B-dul Muncii</item>
+    <item> 101: Str. Bucium - P-ța Gării</item>
+    <item> 102: Str. Bucium - B-dul Muncii</item>
 
-    </string-array>
+  </string-array>
 </resources>

@@ -21,7 +21,9 @@ import okhttp3.Response;
  */
 public class GeneralHelper {
 
-  public static final int busLeavingMinOffset = 0, busLeavingMaxOffset = 45;
+  public static final int
+    busLeavingMinOffset = 0,
+    busLeavingMaxOffset = 45;
   public static final int[] TIMER_VALUES = {30,35,40,45,50,55};
   public static final int[] WIDGET_UPDATE_HOUR_INTERVALS = {1,2,3,4,5,6,7,8,12,24};
 

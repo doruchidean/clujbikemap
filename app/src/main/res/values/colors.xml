@@ -1,13 +1,13 @@
 <resources>
 
-    <color name="black_overlay">#B3000000</color>
-    <color name="transparent">#00FFFFFF</color>
-    <color name="semi_transparent">#59000000</color>
-    <color name="white">#FFF</color>
-    <color name="black">#000</color>
-    <color name="station_green">#76A448</color>
-    <color name="station_gray">#888B8C</color>
-    <color name="station_blue">#38A4BC</color>
-    <color name="station_red">#B92F37</color>
+  <color name="black_overlay">#B3000000</color>
+  <color name="transparent">#00FFFFFF</color>
+  <color name="semi_transparent">#59000000</color>
+  <color name="white">#FFF</color>
+  <color name="black">#000</color>
+  <color name="station_green">#76A448</color>
+  <color name="station_gray">#888B8C</color>
+  <color name="station_blue">#38A4BC</color>
+  <color name="station_red">#B92F37</color>
 
 </resources>

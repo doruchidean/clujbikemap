@@ -11,20 +11,20 @@ import com.doruchidean.clujbikemap.R;
  *
  */
 public class CBMProgressDialog extends ProgressDialog {
+  
+  public CBMProgressDialog(Context context) {
+    super(context, R.style.AppTheme_ProgressDialog);
+  }
 
-	public CBMProgressDialog(Context context) {
-		super(context, R.style.AppTheme_ProgressDialog);
-	}
+  public void setMaxTimeLimitSeconds(int seconds){
+    Handler h = new Handler();
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        CBMProgressDialog.this.dismiss();
+      }
+    };
 
-	public void setMaxTimeLimitSeconds(int seconds){
-		Handler h = new Handler();
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				CBMProgressDialog.this.dismiss();
-			}
-		};
-
-		h.postDelayed(r, seconds*1000);
-	}
+    h.postDelayed(r, seconds*1000);
+  }
 }
