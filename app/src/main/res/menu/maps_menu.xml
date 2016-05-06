@@ -6,28 +6,4 @@
         android:title="@string/options_menu_refresh_rate"
         android:icon="@drawable/ic_refresh"
         app:showAsAction="always"/>
-
-    <item
-        android:id="@+id/hot_cold_margins"
-        android:title="@string/options_menu_hot_cold_margins"/>
-
-    <item
-        android:id="@+id/timer_limit"
-        android:title="@string/options_menu_timer_limit"/>
-
-    <item
-        android:id="@+id/contact"
-        android:title="@string/options_menu_contact"/>
-
-    <item
-        android:id="@+id/overall_stats"
-        android:title="@string/options_menu_overall_stats"/>
-
-    <item
-        android:id="@+id/widget_refresh_interval"
-        android:title="@string/options_menu_widget_interval"/>
-    <item
-        android:id="@+id/show_bus_bar"
-        android:title="@string/options_menu_show_bus_bar_label"
-        android:checkable="true"/>
 </menu>

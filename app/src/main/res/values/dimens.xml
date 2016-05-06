@@ -6,5 +6,9 @@
   <dimen name="bottom_bar_height">40dp</dimen>
   <dimen name="widget_height">60dp</dimen>
   <dimen name="widget_width">240dp</dimen>
+  <dimen name="drawer_width">300dp</dimen>
+  <dimen name="drawer_on_off_button_width">88dp</dimen>
+  <dimen name="drawer_picker_width">80dp</dimen>
+  <!--drawer_on_off_button - 8 (button paddings)-->
 
 </resources>

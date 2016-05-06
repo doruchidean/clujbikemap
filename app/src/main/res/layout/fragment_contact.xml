@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:gravity="center_vertical">
+
+  <TextView
+    android:id="@+id/btn_contact_developer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginTop="16dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:drawablePadding="16dp"
+    android:gravity="start|center_vertical"
+    android:drawableLeft="@drawable/ic_email"
+    android:drawableStart="@drawable/ic_email"
+    android:textColor="@color/color_text_main"
+    android:text="@string/contact_developer"
+    />
+
+  <TextView
+    android:id="@+id/btn_contact_call_center"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:drawablePadding="16dp"
+    android:gravity="start|center_vertical"
+    android:drawableLeft="@drawable/ic_call"
+    android:drawableStart="@drawable/ic_call"
+    android:textColor="@color/color_text_main"
+    android:text="@string/contact_call_center"/>
+
+  <TextView
+    android:id="@+id/btn_community_support"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:drawablePadding="16dp"
+    android:drawableStart="@drawable/ic_community"
+    android:drawableLeft="@drawable/ic_community"
+    android:gravity="start|center_vertical"
+    android:textColor="@color/color_text_main"
+    android:text="@string/contact_facebook_label"/>
+
+</LinearLayout>

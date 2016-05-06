@@ -40,6 +40,13 @@
   <string name="bus_bar_capat2_info_label">2.Tap here to open today\'s timetable</string>
   <string name="bus_bar_add_btn_label">Add</string>
 
+  <string name="open_drawer_content_desc">Open</string>
+  <string name="close_drawer_content_desc">Close</string>
+  <string name="overall_stats_all_bikes">All Bikes: %s</string>
+  <string name="overall_stats_empty_spots">Empty Spots: %s</string>
+  <string name="overall_stats_max_nr_bikes">Max Number: %s</string>
+  <string name="hot_cold_margins_label_btn_set">Set</string>
+
   <string-array name="available_buses">
 
     <item> 1: Str. Bucium - P-ta 1 Mai</item>

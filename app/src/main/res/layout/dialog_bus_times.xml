@@ -1,35 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp">
+<FrameLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:minWidth="240dp"
+  >
 
-        <TableRow android:paddingTop="8dp"
-            android:paddingBottom="4dp">
-            <TextView android:id="@+id/tv_bus_times_title_1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".35"/>
-            <TextView android:id="@+id/tv_bus_times_1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".65"/>
-        </TableRow>
-        <TableRow
-            android:paddingTop="4dp"
-            android:paddingBottom="8dp">
-            <TextView android:id="@+id/tv_bus_times_title_2"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".35"/>
-            <TextView android:id="@+id/tv_bus_times_2"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".65"/>
-        </TableRow>
+  <ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    >
+
+    <TableLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="16dp"
+      android:background="@color/color_primary_light"
+      >
+
+      <TableRow
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+          android:id="@+id/tv_bus_times_title_1"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".35"
+          android:textColor="@color/color_primary_dark"
+          />
+
+        <TextView
+          android:id="@+id/tv_bus_times_1"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".65"
+          android:textColor="@color/color_primary_dark"
+          />
+      </TableRow>
+
+      <TableRow
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        >
+
+        <TextView
+          android:id="@+id/tv_bus_times_title_2"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".35"
+          android:textColor="@color/color_primary_dark"
+          />
+
+        <TextView
+          android:id="@+id/tv_bus_times_2"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".65"
+          android:textColor="@color/color_primary_dark"
+          />
+      </TableRow>
 
     </TableLayout>
-</ScrollView>
+  </ScrollView>
+</FrameLayout>

@@ -10,6 +10,7 @@ import android.widget.RemoteViews;
 
 import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.activities.MapsActivity;
+import com.doruchidean.clujbikemap.fragments.WidgetUpdateIntervalFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class WidgetProvider extends AppWidgetProvider {
   public void onEnabled(Context context) {
 
     //start alarm service to update the widget regularly
-    SettingsDialogs.getInstance().setAlarmForWidgetUpdate(
+    WidgetUpdateIntervalFragment.setAlarmForWidgetUpdate(
       context,
       GeneralHelper.getMillisForWidgetDisplayedValue(
         PersistenceManager.getInstance(context).getWidgetPickerValue()

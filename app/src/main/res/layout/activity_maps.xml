@@ -1,129 +1,313 @@
-<RelativeLayout
+<LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  tools:context=".activities.MapsActivity">
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:orientation="vertical"
+  tools:context=".activities.MapsActivity"
+  >
 
-  <fragment
-    android:id="@+id/map"
-    android:layout_height="match_parent"
+  <android.support.v7.widget.Toolbar
+    android:id="@+id/toolbar"
     android:layout_width="match_parent"
-    android:layout_above="@+id/bus_bar"
-    android:name="com.google.android.gms.maps.SupportMapFragment"/>
-
-  <ImageButton
-    android:id="@+id/btn_show_favourites"
-    android:onClick="onClick"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/ic_favourites_pressed"
-    android:layout_alignParentRight="true"
-    android:layout_alignParentEnd="true"
-    android:layout_marginRight="56dp"
-    android:layout_marginEnd="56dp"
-    android:layout_marginTop="4dp"/>
-
-  <TextView
-    android:id="@+id/btn_timer"
-    android:onClick="onClick"
-    android:clickable="true"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="@drawable/ic_timer_pressed"
-    android:layout_toLeftOf="@id/btn_show_favourites"
-    android:layout_toStartOf="@id/btn_show_favourites"
-    android:layout_marginTop="4dp"
-    android:paddingTop="4dp"
-    android:gravity="center"
-    android:textColor="@color/white"
-    android:textStyle="bold"
+    android:layout_height="?android:attr/actionBarSize"
+    android:background="@color/color_primary"
+    app:titleTextColor="@color/color_actionbar_title"
     />
 
-  <LinearLayout
-    android:id="@id/bus_bar"
+  <android.support.v4.widget.DrawerLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_alignParentBottom="true"
-    android:background="@color/black_overlay"
-    android:padding="8dp"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:visibility="gone"
+    android:layout_height="match_parent"
+    android:id="@+id/drawer_layout"
     >
 
+    <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      >
+
+      <fragment
+        android:id="@+id/map"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_above="@+id/bus_bar"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        />
+
+      <ImageButton
+        android:id="@+id/btn_show_favourites"
+        android:onClick="onClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_favourites_pressed"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="56dp"
+        android:layout_marginEnd="56dp"
+        android:layout_marginTop="4dp"
+        />
+
+      <TextView
+        android:id="@+id/btn_timer"
+        android:onClick="onClick"
+        android:clickable="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_timer_pressed"
+        android:layout_toLeftOf="@id/btn_show_favourites"
+        android:layout_toStartOf="@id/btn_show_favourites"
+        android:layout_marginTop="4dp"
+        android:paddingTop="4dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        />
+
+      <LinearLayout
+        android:id="@id/bus_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/color_primary"
+        android:padding="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="visible"
+        >
+
+        <LinearLayout
+          android:id="@+id/btn_full_bus_schedule"
+          android:onClick="onClick"
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:orientation="vertical"
+          android:layout_weight=".85"
+          >
+
+          <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <TextView
+              android:id="@+id/tv_bus_capat1"
+              android:layout_height="wrap_content"
+              android:layout_width="wrap_content"
+              android:textColor="@color/color_bus_bar_text"
+              android:singleLine="true"
+              android:text="@string/bus_bar_capat1_info_label"
+              />
+
+              <LinearLayout
+                android:id="@+id/ll_times_left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="4dp"
+                android:paddingStart="4dp"
+                android:paddingRight="4dp"
+                android:paddingEnd="4dp"
+                android:orientation="horizontal"
+                />
+
+          </LinearLayout>
+
+          <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <TextView
+              android:id="@+id/tv_bus_capat2"
+              android:layout_height="wrap_content"
+              android:layout_width="wrap_content"
+              android:textColor="@color/color_bus_bar_text"
+              android:singleLine="true"
+              android:text="@string/bus_bar_capat2_info_label"
+              />
+
+              <LinearLayout
+                android:id="@+id/ll_times_right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="4dp"
+                android:paddingStart="4dp"
+                android:paddingRight="4dp"
+                android:paddingEnd="4dp"
+                android:orientation="horizontal"
+                />
+
+          </LinearLayout>
+
+        </LinearLayout>
+
+        <TextView
+          android:id="@+id/btn_select_bus"
+          android:onClick="onClick"
+          android:clickable="true"
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:layout_weight=".15"
+          android:background="@drawable/ic_bus"
+          android:paddingBottom="6dp"
+          android:gravity="center"
+          android:text="@string/bus_bar_add_btn_label"
+          android:textColor="@color/white"
+          />
+      </LinearLayout>
+    </RelativeLayout>
+
     <LinearLayout
-      android:id="@+id/btn_full_bus_schedule"
-      android:onClick="onClick"
-      android:layout_width="0dp"
+      android:layout_width="@dimen/drawer_width"
       android:layout_height="match_parent"
       android:orientation="vertical"
-      android:layout_weight=".85">
+      android:background="@color/drawer_button_normal"
+      android:layout_gravity="start"
+      android:gravity="center_horizontal"
+      >
 
-      <LinearLayout
+      <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/color_divider"
+        />
+
+      <TextView
+        android:id="@+id/drawer_btn_margins"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:onClick="onClick"
+        android:clickable="true"
+        android:paddingLeft="64dp"
+        android:paddingStart="64dp"
+        android:paddingRight="0dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/color_text_main"
+        android:text="@string/options_menu_hot_cold_margins"
+        />
 
-        <TextView
-          android:id="@+id/tv_bus_capat1"
-          android:layout_height="wrap_content"
-          android:layout_width="wrap_content"
-          android:textColor="@color/white"
-          android:singleLine="true"
-          android:text="@string/bus_bar_capat1_info_label"/>
-
-        <LinearLayout
-          android:id="@+id/ll_times_left"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:paddingLeft="4dp"
-          android:paddingStart="4dp"
-          android:paddingRight="4dp"
-          android:paddingEnd="4dp"
-          android:orientation="horizontal"/>
-
-      </LinearLayout>
-
-      <LinearLayout
+      <TextView
+        android:id="@+id/drawer_btn_timer_limit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:onClick="onClick"
+        android:clickable="true"
+        android:paddingStart="64dp"
+        android:paddingLeft="64dp"
+        android:paddingRight="0dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/color_text_main"
+        android:text="@string/options_menu_timer_limit"
+        />
 
+      <TextView
+        android:id="@+id/drawer_btn_contact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:clickable="true"
+        android:paddingStart="64dp"
+        android:paddingLeft="64dp"
+        android:paddingRight="0dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/color_text_main"
+        android:text="@string/options_menu_contact"
+        />
+
+      <TextView
+        android:id="@+id/drawer_btn_overall_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:clickable="true"
+        android:paddingStart="64dp"
+        android:paddingLeft="64dp"
+        android:paddingRight="0dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/color_text_main"
+        android:text="@string/options_menu_overall_stats"
+        />
+
+      <TextView
+        android:id="@+id/drawer_btn_widget_refresh_interval"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onClick"
+        android:clickable="true"
+        android:paddingStart="64dp"
+        android:paddingLeft="64dp"
+        android:paddingRight="0dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/color_text_main"
+        android:text="@string/options_menu_widget_interval"
+        />
+
+      <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/color_divider"/>
+
+      <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
         <TextView
-          android:id="@+id/tv_bus_capat2"
-          android:layout_height="wrap_content"
           android:layout_width="wrap_content"
-          android:textColor="@color/white"
-          android:singleLine="true"
-          android:text="@string/bus_bar_capat2_info_label"/>
+          android:layout_height="wrap_content"
+          android:paddingStart="64dp"
+          android:paddingLeft="64dp"
+          android:paddingRight="0dp"
+          android:paddingEnd="0dp"
+          android:paddingTop="8dp"
+          android:paddingBottom="8dp"
+          android:textColor="@color/color_text_main"
+          android:text="@string/options_menu_show_bus_bar_label"
+          android:layout_alignParentLeft="true"
+          android:layout_alignParentStart="true"
+          android:layout_centerVertical="true"
+          />
 
-        <LinearLayout
-          android:id="@+id/ll_times_right"
-          android:layout_width="match_parent"
-          android:layout_height="16dp"
-          android:paddingLeft="4dp"
-          android:paddingStart="4dp"
-          android:paddingRight="4dp"
-          android:paddingEnd="4dp"
-          android:orientation="horizontal"/>
-
-      </LinearLayout>
+        <ToggleButton
+          android:id="@+id/show_bus_bar"
+          android:layout_width="@dimen/drawer_on_off_button_width"
+          android:layout_height="wrap_content"
+          android:textColor="@color/color_text_main"
+          android:layout_alignParentEnd="true"
+          android:layout_alignParentRight="true"
+          android:layout_marginRight="16dp"
+          android:layout_marginEnd="16dp"
+          />
+      </RelativeLayout>
+      <FrameLayout
+        android:id="@+id/drawer_fragment_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_primary_dark"
+        >
+      </FrameLayout>
 
     </LinearLayout>
 
-    <TextView
-      android:id="@+id/btn_select_bus"
-      android:onClick="onClick"
-      android:clickable="true"
-      android:layout_width="0dp"
-      android:layout_height="match_parent"
-      android:layout_weight=".15"
-      android:background="@drawable/ic_bus"
-      android:paddingBottom="6dp"
-      android:gravity="center"
-      android:text="@string/bus_bar_add_btn_label"
-      android:textColor="@color/white"/>
-  </LinearLayout>
+  </android.support.v4.widget.DrawerLayout>
 
-</RelativeLayout>
+</LinearLayout>

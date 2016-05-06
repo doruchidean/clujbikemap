@@ -7,6 +7,7 @@ import android.util.Base64;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Created by Doru on 07/01/16.
@@ -17,7 +18,7 @@ public class PersistenceManager {
 	private static PersistenceManager mInstance;
 
 	//constant keys
-	private static final String
+	public static final String
 		FAVOURITE_STATIONS = "favouritesStations",
 		SHOWS_FAVOURITES_ONLY = "showFavourites",
 		COLD_LIMIT = "coldlimit",
@@ -28,7 +29,10 @@ public class PersistenceManager {
 		WIDGET_ID="widgetid",
 		BUS_SCHEDULE = "busschedule",
 		WIDGET_UPDATE_INTERVAL="widgetupdateinterval",
-		SHOW_BUS_BAR="showbusbar";
+		SHOW_BUS_BAR="showbusbar",
+		OVERALL_BIKES="overall.bikes",
+		OVERALL_EMPTY_SPOTS="overall.empty",
+		OVERALL_MAX_NR="overall.max.nr";
 
 	//values that need to be saved and loaded
 	private ArrayList<String> favouriteStations=new ArrayList<>();
@@ -185,6 +189,27 @@ public class PersistenceManager {
 		editor.putString(BUS_SCHEDULE, Base64.encodeToString(binaryData, Base64.NO_WRAP));
 		editor.apply();
 
+	}
+
+	public void setOverallStats(Context context, int allBikes, int allEmptySpots, int maxNrOfBikes){
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putInt(OVERALL_BIKES, allBikes)
+			.putInt(OVERALL_EMPTY_SPOTS, allEmptySpots)
+			.putInt(OVERALL_MAX_NR, maxNrOfBikes)
+			.apply();
+	}
+
+	public HashMap<String, Integer> getOverallStats(Context context){
+		HashMap<String, Integer> result = new HashMap<>();
+
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+
+		result.put(OVERALL_BIKES, sp.getInt(OVERALL_BIKES, 0));
+		result.put(OVERALL_EMPTY_SPOTS, sp.getInt(OVERALL_EMPTY_SPOTS, 0));
+		result.put(OVERALL_MAX_NR, sp.getInt(OVERALL_MAX_NR, 0));
+
+		return result;
 	}
 
 	public byte[] getBusSchedule(Context context){

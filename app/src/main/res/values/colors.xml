@@ -5,9 +5,35 @@
   <color name="semi_transparent">#59000000</color>
   <color name="white">#FFF</color>
   <color name="black">#000</color>
+
   <color name="station_green">#76A448</color>
   <color name="station_gray">#888B8C</color>
   <color name="station_blue">#38A4BC</color>
   <color name="station_red">#B92F37</color>
+
+  <!-- INDIGO THEME -->
+  <!--<color name="color_primary">#3F51B5</color>-->
+  <!--<color name="color_primary_dark">#303F9F</color>-->
+  <!--<color name="color_primary_light">#C5CAE9</color>-->
+  <!--<color name="color_accent">#FF9800</color>-->
+  <!--<color name="color_text_main">@color/color_primary_light</color>-->
+  <!--<color name="color_dialog_title">@color/white</color>-->
+  <!--<color name="color_divider">#B6B6B6</color>-->
+
+  <!-- GREY THEME -->
+  <color name="color_primary">#607D8B</color>
+  <color name="color_primary_dark">#455A64</color>
+  <color name="color_primary_light">#CFD8DC</color>
+  <color name="color_accent">#795548</color>
+  <color name="color_text_main">@color/color_primary_light</color>
+  <color name="color_dialog_title">@color/white</color>
+  <color name="color_divider">#B6B6B6</color>
+
+  <color name="color_actionbar_title">@color/white</color>
+  <color name="color_actionbar_icon">@color/white</color>
+  <color name="drawer_button_normal">@color/color_primary</color>
+  <color name="drawer_button_selected">@color/color_primary_dark</color>
+
+  <color name="color_bus_bar_text">@color/color_text_main</color>
 
 </resources>
