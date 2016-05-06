@@ -65,11 +65,9 @@ import com.doruchidean.clujbikemap.models.BikeStation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -97,7 +95,7 @@ public class MapsActivity extends AppCompatActivity
 	GoogleApiClient.OnConnectionFailedListener,
 	Callbacks.SettingsDialogsCallback,
 	View.OnClickListener,
-	GoogleMap.OnInfoWindowClickListener, LocationListener, LocationSource{
+	GoogleMap.OnInfoWindowClickListener{
 
 	private final static String
 		TAG_CONTACT = "contact.fragment",
@@ -460,8 +458,6 @@ public class MapsActivity extends AppCompatActivity
 							}
 						}
 
-						//// TODO: 04/05/16 test pe device daca merge locatia si daca e low battery usage
-						mMap.setLocationSource(MapsActivity.this);
 						mMap.setMyLocationEnabled(true);
 						mMap.setOnInfoWindowClickListener(MapsActivity.this);
 						mMap.setInfoWindowAdapter(mMapInfoWindowsAdapter);
@@ -1050,21 +1046,5 @@ public class MapsActivity extends AppCompatActivity
 
 	public static void trace(String s){
 		Log.d("traces", s);
-	}
-
-	@Override public void onLocationChanged(Location location) {
-		if (mMapLocationListener != null) {
-			mMapLocationListener.onLocationChanged(location);
-		}
-	}
-
-	private OnLocationChangedListener mMapLocationListener;
-
-	@Override public void activate(OnLocationChangedListener onLocationChangedListener) {
-		mMapLocationListener = onLocationChangedListener;
-	}
-
-	@Override public void deactivate() {
-		mMapLocationListener = null;
 	}
 }
