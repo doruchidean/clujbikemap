@@ -11,15 +11,6 @@
   <color name="station_blue">#38A4BC</color>
   <color name="station_red">#B92F37</color>
 
-  <!-- INDIGO THEME -->
-  <!--<color name="color_primary">#3F51B5</color>-->
-  <!--<color name="color_primary_dark">#303F9F</color>-->
-  <!--<color name="color_primary_light">#C5CAE9</color>-->
-  <!--<color name="color_accent">#FF9800</color>-->
-  <!--<color name="color_text_main">@color/color_primary_light</color>-->
-  <!--<color name="color_dialog_title">@color/white</color>-->
-  <!--<color name="color_divider">#B6B6B6</color>-->
-
   <!-- GREY THEME -->
   <color name="color_primary">#607D8B</color>
   <color name="color_primary_dark">#455A64</color>
