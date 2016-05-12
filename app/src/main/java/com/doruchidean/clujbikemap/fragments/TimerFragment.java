@@ -27,7 +27,15 @@ public class TimerFragment extends Fragment {
 		picker.setMinValue(0);
 		picker.setMaxValue(GeneralHelper.TIMER_VALUES.length-1);
 		picker.setDisplayedValues(GeneralHelper.getTimerPickerDisplayedValues());
-		picker.setValue(persistenceManager.getTimerValueIndex());
+
+		//todo START remove temporaryCheck validation after next update (current code 17)
+			int temporaryCheck = persistenceManager.getTimerValueIndex();
+			if(temporaryCheck < 0 || temporaryCheck >= GeneralHelper.TIMER_VALUES.length){
+				temporaryCheck = 2;
+			}
+			picker.setValue(temporaryCheck);
+		//todo END
+
 		picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
 			@Override
 			public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
