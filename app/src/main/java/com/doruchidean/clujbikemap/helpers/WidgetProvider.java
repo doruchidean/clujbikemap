@@ -10,6 +10,7 @@ import android.widget.RemoteViews;
 
 import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.activities.MapsActivity;
+import com.doruchidean.clujbikemap.database.DatabaseHandler;
 import com.doruchidean.clujbikemap.fragments.WidgetUpdateIntervalFragment;
 
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class WidgetProvider extends AppWidgetProvider {
     if(widgetId > 0) {
       mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.widget);
 
-      updateTexts(persistenceManager.getBusSchedule(context), persistenceManager.getBusName());
+      updateTexts(context, persistenceManager.getBusNumber());
 
       Intent onClickIntent = new Intent(context, MapsActivity.class);
       PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, onClickIntent, PendingIntent.FLAG_ONE_SHOT);
@@ -79,25 +80,46 @@ public class WidgetProvider extends AppWidgetProvider {
         mRemoteViews
       );
 
-      Log.d("traces", "widget visible: id " + widgetId);
+      Log.d("traces", this.getClass().getSimpleName() + " onReceive(): id " + widgetId);
     }
   }
 
-  public void updateTexts(byte[] rawData, String busName) {
+  public void updateTexts(Context context, String busNumber) {
+		HashMap<String, ArrayList<String>> leavingTimes = DatabaseHandler.getInstance(context).getBusScheduleForToday(busNumber);
 
-    if(rawData == null || busName.length() == 0) return;
+    if(busNumber.length() == 0 || leavingTimes.get(Factory.NUME_CAPETE).size() == 0) return;
 
-    HashMap<String, ArrayList<String>> leavingTimes = Factory.getInstance().readCsv(rawData);
+		ArrayList<String> plecariCapat1 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_1));
+		ArrayList<String> plecariCapat2 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_2));
 
-    mRemoteViews.setTextViewText(R.id.tv_widget_bus, GeneralHelper.getBusNumber(busName));
-    String text= GeneralHelper.getPlecariAtThisHour(leavingTimes.get(Factory.PLECARI_CAPAT_2));
-    mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_2, text);
-    text = GeneralHelper.getPlecariAtThisHour(leavingTimes.get(Factory.PLECARI_CAPAT_1));
-    mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_1, text);
-    text = leavingTimes.get(Factory.NUME_CAPETE).get(0);
-    mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, text);
-    text = leavingTimes.get(Factory.NUME_CAPETE).get(1);
-    mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, text);
+		String numeCapat1 = leavingTimes.get(Factory.NUME_CAPETE).get(0);
+		String numeCapat2 = leavingTimes.get(Factory.NUME_CAPETE).get(1);
+
+		mRemoteViews.setTextViewText(R.id.tv_widget_bus, busNumber);
+		if (plecariCapat1.size() == 0) {
+			mRemoteViews.setTextViewText(
+				R.id.tv_widget_times_capat_1,
+				String.format(context.getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
+		}else{
+			String textToBeDisplayed = "";
+			for(String s : plecariCapat1){
+				textToBeDisplayed += s + " | ";
+			}
+			mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_1, textToBeDisplayed);
+		}
+		if(plecariCapat2.size() == 0){
+			mRemoteViews.setTextViewText(
+				R.id.tv_widget_times_capat_2,
+				String.format(context.getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
+		}else{
+			String textToBeDisplayed = "";
+			for(String s : plecariCapat2){
+				textToBeDisplayed += s + " | ";
+			}
+			mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_2, textToBeDisplayed);
+		}
+		mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, numeCapat1);
+    mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, numeCapat2);
 
   }
 

@@ -169,6 +169,10 @@ public class PersistenceManager {
 		return mBusName;
 	}
 
+	public String getBusNumber(){
+		return mBusName.split(":")[0];
+	}
+
 	public void setBusName(String busName) {
 		this.mBusName = busName;
 	}
@@ -212,6 +216,7 @@ public class PersistenceManager {
 		return result;
 	}
 
+	//todo replace with database values (widgetProvider)
 	public byte[] getBusSchedule(Context context){
 
 		byte[] result=null;

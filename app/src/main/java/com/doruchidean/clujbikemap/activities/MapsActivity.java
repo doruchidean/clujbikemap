@@ -31,6 +31,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -48,6 +49,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.doruchidean.clujbikemap.adapters.GoogleMapsInfoWindowAdapter;
+import com.doruchidean.clujbikemap.database.DatabaseHandler;
 import com.doruchidean.clujbikemap.fragments.ContactFragment;
 import com.doruchidean.clujbikemap.fragments.HotColdMarginsFragment;
 import com.doruchidean.clujbikemap.fragments.OverallStatsFragment;
@@ -148,7 +150,6 @@ public class MapsActivity extends AppCompatActivity
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-
 		ActionBar actionBar = getSupportActionBar();
 		if (actionBar != null) {
 			actionBar.setHomeButtonEnabled(true);
@@ -170,6 +171,11 @@ public class MapsActivity extends AppCompatActivity
 		assert mBusBar != null;
 		mBusBar.setVisibility(showBusBar ? View.VISIBLE : View.GONE);
 		drawerBtnShowBusBar.setChecked(showBusBar);
+
+		PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
+		if (DatabaseHandler.getInstance(this).hasBusScheduleForToday(pm.getBusNumber()) && showBusBar) {
+			updateBusBarUI();
+		}
 
 		mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
 
@@ -226,11 +232,6 @@ public class MapsActivity extends AppCompatActivity
 
 		ApiClient.getInstance().getStations(getStationsCallback);
 
-		PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
-		if (pm.getBusName().length() > 0 && pm.getShowBusBar()) {
-			ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, pm.getBusName());
-		}
-
 		setUpMapIfNeeded();
 
 		refreshUIButtons();
@@ -264,6 +265,7 @@ public class MapsActivity extends AppCompatActivity
 	private Callback getBusScheduleCallback = new Callback() {
 		@Override public void onFailure(Call call, IOException e) {
 			trace("fail gettingBus " + e.getMessage());
+			Log.e("traces", "fail gettingbus " + e.getMessage());
 		}
 
 		@Override public void onResponse(Call call, final Response response) throws IOException {
@@ -276,12 +278,31 @@ public class MapsActivity extends AppCompatActivity
 							onApiCallFail(response.code());
 							return;
 						}
-						updateBusBarUI(bytes);
+						GeneralHelper.updateDatabase(MapsActivity.this, bytes);
+
+						updateBusBarUI();
 					}
 				}
 			);
 		}
 	};
+
+	public void onApiCallFail(int errorCode) {
+		trace(errorCode + " error code");
+		Log.e("traces", "onApiCallFail error code:" + errorCode);
+		switch (errorCode){
+			case (404):
+				Toast.makeText(MapsActivity.this, getString(R.string.failure_page_not_found), Toast.LENGTH_LONG).show();
+				tvBusCapat1.setText(getString(R.string.bus_schedule_not_found));
+				tvSelectedBus.setText(PersistenceManager.getInstance(MapsActivity.this).getBusNumber());
+				tvBusCapat2.setText("");
+				GeneralHelper.updateDatabase(MapsActivity.this, null);
+				break;
+			default:
+				Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations), Toast.LENGTH_LONG).show();
+				break;
+		}
+	}
 
 	private void updateMarkersUI(JSONObject jsonResponse) {
 		mStationsArray = Factory.getInstance().factorizeResponse(jsonResponse);
@@ -309,13 +330,14 @@ public class MapsActivity extends AppCompatActivity
 		pm.setOverallStats(this, allBikes, allEmptySpots, maxNrOfBikes);
 	}
 
-	private void updateBusBarUI(byte[] bytes) {
-		PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
-		pm.setBusSchedule(MapsActivity.this, bytes);
-		HashMap<String, ArrayList<String>> leavingTimes = Factory.getInstance().readCsv(bytes);
-		setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_1), llTimesLeft);
-		setTextsInBusBar(leavingTimes.get(Factory.MINUTES_CAPAT_2), llTimesRight);
-		tvSelectedBus.setText(GeneralHelper.getBusNumber(pm.getBusName()));
+	private void updateBusBarUI() {
+
+		String busNumber = PersistenceManager.getInstance(this).getBusNumber();
+
+		tvSelectedBus.setText(busNumber);
+
+		HashMap<String, ArrayList<String>> leavingTimes =
+			DatabaseHandler.getInstance(this).getBusScheduleForToday(busNumber);
 
 		plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
 		plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
@@ -324,9 +346,105 @@ public class MapsActivity extends AppCompatActivity
 		capat2Title = leavingTimes.get(Factory.NUME_CAPETE).get(1);
 		tvBusCapat1.setText(capat1Title);
 		tvBusCapat2.setText(capat2Title);
+
+		setTextsInBusBar(GeneralHelper.getDeparturesInNextHour(true, plecariCapat1), llTimesLeft);
+		setTextsInBusBar(GeneralHelper.getDeparturesInNextHour(true, plecariCapat2), llTimesRight);
+	}
+
+	private void setTextsInBusBar(ArrayList<String> minutesRemaining, LinearLayout parent){
+
+		TextView tvSubtitle = new TextView(MapsActivity.this);
+		tvSubtitle.setSingleLine();
+		tvSubtitle.setTextColor(ContextCompat.getColor(this, R.color.color_text_main));
+		parent.addView(tvSubtitle);
+
+		if(minutesRemaining.size() == 0){
+			tvSubtitle.setText(
+				String.format(getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
+			return;
+		}
+
+		parent.removeAllViews();
+
+		int padding2dp = (int) TypedValue.applyDimension(
+			TypedValue.COMPLEX_UNIT_DIP,
+			2,
+			getResources().getDisplayMetrics()
+		);
+
+		int minutesArraySize = minutesRemaining.size();
+
+		tvSubtitle.setText(getString(R.string.bus_departing_label));
+		tvSubtitle.setPadding(0,0,padding2dp,0);
+
+		String minuteString;
+		int minInt;
+
+		TextView tvMinutesRed = new TextView(MapsActivity.this);
+		tvMinutesRed.setTextColor(Color.RED);
+		tvMinutesRed.setPadding(padding2dp,0,0,0);
+		tvMinutesRed.setSingleLine();
+		String textMinutesRed="";
+
+		TextView tvMinutesYellow = new TextView(MapsActivity.this);
+		tvMinutesYellow.setTextColor(Color.YELLOW);
+		tvMinutesYellow.setPadding(padding2dp,0,0,0);
+		tvMinutesYellow.setSingleLine();
+		String textMinutesYellow="";
+
+		TextView tvMinutesGreen = new TextView(MapsActivity.this);
+		tvMinutesGreen.setTextColor(Color.GREEN);
+		tvMinutesGreen.setPadding(padding2dp,0,0,0);
+		tvMinutesGreen.setSingleLine();
+		tvMinutesGreen.setEllipsize(TextUtils.TruncateAt.END);
+		String textMinutesGreen="";
+
+		for(int i=0; i<minutesArraySize; i++){
+
+			minuteString = minutesRemaining.get(i);
+			minInt = Integer.valueOf(minuteString);
+
+			if(minInt <= 3){
+				textMinutesRed += minuteString;
+				if (i == minutesArraySize-1) {
+					textMinutesRed += " min";
+				}else{
+					textMinutesRed += ", ";
+				}
+			}else if(minInt <= 10){
+				textMinutesYellow += minuteString;
+				if (i == minutesArraySize-1) {
+					textMinutesYellow += " min";
+				}else{
+					textMinutesYellow += ", ";
+				}
+			}else{
+				textMinutesGreen += minuteString;
+				if (i == minutesArraySize-1) {
+					textMinutesGreen += " min";
+				}else{
+					textMinutesGreen += ", ";
+				}
+			}
+
+		}
+
+		if(textMinutesRed.length() > 0){
+			tvMinutesRed.setText(textMinutesRed);
+			parent.addView(tvMinutesRed);
+		}
+		if(textMinutesYellow.length() > 0){
+			tvMinutesYellow.setText(textMinutesYellow);
+			parent.addView(tvMinutesYellow);
+		}
+		if(textMinutesGreen.length() > 0){
+			tvMinutesGreen.setText(textMinutesGreen);
+			parent.addView(tvMinutesGreen);
+		}
 	}
 
 	private void refreshUIButtons() {
+
 		PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
 		btnShowFavourites.setBackgroundResource(pm.getShowFavouritesOnly() ?
 			R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
@@ -503,6 +621,7 @@ public class MapsActivity extends AppCompatActivity
 				new Callback() {
 					@Override public void onFailure(Call call, IOException e) {
 						trace("fail getDistance: " + e.getMessage());
+						Log.e("traces", "fail getDistance " + e.getMessage());
 					}
 
 					@Override public void onResponse(Call call, Response response) throws IOException {
@@ -660,72 +779,6 @@ public class MapsActivity extends AppCompatActivity
 
 	@Override
 	public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-	}
-
-	private void setTextsInBusBar(ArrayList<String> minTexts, LinearLayout parent){
-
-		parent.removeAllViews();
-
-		int padding2dp = (int) TypedValue.applyDimension(
-			TypedValue.COMPLEX_UNIT_DIP,
-			2,
-			getResources().getDisplayMetrics()
-		);
-
-		TextView tvSubtitle = new TextView(MapsActivity.this);
-		tvSubtitle.setSingleLine();
-		tvSubtitle.setTextColor(ContextCompat.getColor(this, R.color.color_text_main));
-		if (minTexts.size() > 0) {
-			tvSubtitle.setText(getString(R.string.bus_bar_subtitle_to_be_filled));
-			tvSubtitle.setPadding(0,0,padding2dp,0);
-		} else {
-			tvSubtitle.setText(String.format(getString(R.string.bus_bar_subtitle_full), GeneralHelper.busLeavingMaxOffset));
-		}
-		parent.addView(tvSubtitle);
-
-		String minString;
-		int minInt;
-		for(int i=0; i<minTexts.size(); i++){
-
-			TextView tvMinute = new TextView(MapsActivity.this);
-			tvMinute.setPadding(padding2dp,0,0,0);
-			tvMinute.setSingleLine();
-
-			minString = minTexts.get(i);
-			minInt = Integer.valueOf(minString);
-
-			if(minInt <= 3){
-				tvMinute.setTextColor(Color.RED);
-			}else if(minInt <= 10){
-				tvMinute.setTextColor(Color.YELLOW);
-			}else{
-				tvMinute.setTextColor(Color.GREEN);
-			}
-
-			if (i<minTexts.size()-1) {
-				minString += ", ";
-			}else{
-				minString += " min";
-			}
-
-			tvMinute.setText(minString);
-			parent.addView(tvMinute);
-		}
-	}
-
-	public void onApiCallFail(int errorCode) {
-		trace(errorCode + " error code");
-		switch (errorCode){
-			case (404):
-				Toast.makeText(MapsActivity.this, getString(R.string.failure_page_not_found), Toast.LENGTH_LONG).show();
-				tvBusCapat1.setText(getString(R.string.bus_schedule_not_found));
-				tvBusCapat2.setText("");
-				break;
-			default:
-				Toast.makeText(MapsActivity.this, getString(R.string.failure_getting_stations), Toast.LENGTH_LONG).show();
-				break;
-		}
 	}
 
 	@Override public void onInfoWindowClick(Marker marker) {
@@ -849,7 +902,12 @@ public class MapsActivity extends AppCompatActivity
 						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
-								ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, persistenceManager.getBusName());
+								//todo test this
+								if(DatabaseHandler.getInstance(MapsActivity.this).hasBusScheduleForToday(persistenceManager.getBusNumber())){
+									updateBusBarUI();
+								}else{
+									ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, persistenceManager.getBusNumber());
+								}
 							}
 						})
 						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -886,11 +944,7 @@ public class MapsActivity extends AppCompatActivity
 				tvPlecari2.setText(plecari2);
 
 				AlertDialog dialog1 = new AlertDialog.Builder(MapsActivity.this, R.style.MyDialogTheme)
-					.setTitle(getString(R.string.dialog_orar_complet) + " " +
-						GeneralHelper.getBusNumber(
-							persistenceManager.getBusName()
-						)
-					)
+					.setTitle(getString(R.string.dialog_orar_complet) + " " + persistenceManager.getBusNumber())
 					.setView(busTimesContainer)
 					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 						@Override
@@ -1012,24 +1066,41 @@ public class MapsActivity extends AppCompatActivity
 
 		//update widget if any
 		int widgetId = persistenceManager.getWidgetId();
-		String busName = persistenceManager.getBusName();
-		if(widgetId > 0 && busName.length() >0) {
+		String busNumber = persistenceManager.getBusNumber();
+		if(widgetId > 0 && busNumber.length() > 0) {
 			RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.widget);
 
 			remoteViews.setTextViewText(
 				R.id.tv_widget_bus,
-				GeneralHelper.getBusNumber(busName)
+				busNumber
 			);
 			remoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, capat1Title);
 			remoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, capat2Title);
-			remoteViews.setTextViewText(
-				R.id.tv_widget_times_capat_1,
-				GeneralHelper.getPlecariAtThisHour(plecariCapat1)
-			);
-			remoteViews.setTextViewText(
-				R.id.tv_widget_times_capat_2,
-				GeneralHelper.getPlecariAtThisHour(plecariCapat2)
-			);
+
+			if(plecariCapat1.size() == 0){
+				remoteViews.setTextViewText(R.id.tv_widget_times_capat_1, getString(R.string.bus_schedule_not_found));
+			}else{
+				String textToBeDisplayed = "";
+				for(String s : GeneralHelper.getDeparturesInNextHour(false, plecariCapat1)){
+					textToBeDisplayed += s + " | ";
+				}
+				remoteViews.setTextViewText(
+					R.id.tv_widget_times_capat_1,
+					textToBeDisplayed
+				);
+			}
+			if (plecariCapat2.size() == 0) {
+				remoteViews.setTextViewText(R.id.tv_widget_times_capat_2, getString(R.string.bus_schedule_not_found));
+			} else {
+				String textToBeDisplayed = "";
+				for(String s : GeneralHelper.getDeparturesInNextHour(false, plecariCapat2)){
+					textToBeDisplayed += s + " | ";
+				}
+				remoteViews.setTextViewText(
+					R.id.tv_widget_times_capat_2,
+					textToBeDisplayed
+				);
+			}
 			Intent intent = new Intent(this, MapsActivity.class);
 			PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 			remoteViews.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
@@ -1038,7 +1109,7 @@ public class MapsActivity extends AppCompatActivity
 				remoteViews
 			);
 
-			trace("widget updated in onDestroy maps activity");
+			trace("widget updated in onStop mapsActivity");
 		}
 
 		super.onStop();

@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 
 /**
@@ -23,8 +22,6 @@ public class Factory {
   private static Factory ourInstance = new Factory();
 
   public static final String
-    MINUTES_CAPAT_1 = "capat1",
-    MINUTES_CAPAT_2="capat2",
     PLECARI_CAPAT_1="plecari1",
     PLECARI_CAPAT_2="pelcari2",
     NUME_CAPETE="numecapete";
@@ -75,19 +72,17 @@ public class Factory {
     return stationsArray;
   }
 
+	/**
+	 * This method parses a .csv file from binaryData into a hashmap
+	 * @param binaryData data to be parsed
+	 * @return HashMap{NUME_CAPETE:{0,1}, MINUTES_CAPAT_1:{...}, MINUTES_CAPAT_2:{...}, PLECARI_CAPAT_1:{...}, PLECARI_CAPAT_2:{}}
+	 */
   public HashMap<String, ArrayList<String>> readCsv(byte[] binaryData){
 
     InputStream inputStream = new ByteArrayInputStream(binaryData);
 
-    Calendar calendar = Calendar.getInstance();
-    int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
-    int currentMinute = calendar.get(Calendar.MINUTE);
-    String minutesRemaining;
-
     HashMap<String, ArrayList<String>> resultList = new HashMap<>();
     ArrayList<String> numeCapete = new ArrayList<>();
-    ArrayList<String> minutesCapatul1 = new ArrayList<>();
-    ArrayList<String> minutesCapatul2 = new ArrayList<>();
     ArrayList<String> plecariCapatul1 = new ArrayList<>();
     ArrayList<String> plecariCapatul2 = new ArrayList<>();
 
@@ -107,14 +102,7 @@ public class Factory {
 
         //row 0 reprezinta orele pt capatul 1 al linii
         if(row[0].contains(":")) {
-
           plecariCapatul1.add(row[0]);
-
-          minutesRemaining = GeneralHelper.isBusTimeInNextHour(true, row[0], currentHour, currentMinute);
-          if(minutesRemaining != null){
-            minutesCapatul1.add(minutesRemaining);
-          }
-
         }else if(row[0].contains("route_long_name")){  //if row has the route we show it in the bus bar
           String[] capete = row[1].split(" - ");
           numeCapete.add(capete[0]+":");
@@ -122,19 +110,11 @@ public class Factory {
         }
         //row 1 reprezinta orele pt capatul 2 al linii
         if(row[1].contains(":")) {
-
           plecariCapatul2.add(row[1]);
-
-          minutesRemaining = GeneralHelper.isBusTimeInNextHour(true, row[1], currentHour, currentMinute);
-          if(minutesRemaining != null){
-            minutesCapatul2.add(minutesRemaining);
-          }
         }
       }
 
       resultList.put(NUME_CAPETE, numeCapete);
-      resultList.put(MINUTES_CAPAT_1, minutesCapatul1);
-      resultList.put(MINUTES_CAPAT_2, minutesCapatul2);
       resultList.put(PLECARI_CAPAT_1, plecariCapatul1);
       resultList.put(PLECARI_CAPAT_2, plecariCapatul2);
     }

@@ -3,6 +3,7 @@ package com.doruchidean.clujbikemap.helpers;
 import android.content.Context;
 import android.util.DisplayMetrics;
 
+import com.doruchidean.clujbikemap.database.DatabaseHandler;
 import com.doruchidean.clujbikemap.models.BikeStation;
 
 import org.json.JSONArray;
@@ -12,6 +13,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import okhttp3.Response;
 
@@ -23,9 +25,15 @@ public class GeneralHelper {
 
   public static final int
     busLeavingMinOffset = 0,
-    busLeavingMaxOffset = 45;
+    busLeavingMaxLimit = 45;
+
   public static final int[] TIMER_VALUES = {30,35,40,45,50,55};
   public static final int[] WIDGET_UPDATE_HOUR_INTERVALS = {1,2,3,4,5,6,7,8,12,24};
+
+	public static final String
+		ORAR_SAMBATA="_s",
+		ORAR_DUMINICA="_d",
+		ORAR_LUNI_VINERI="_lv";
 
   public static BikeStation binarySearchStation(String markerTitleToFind, ArrayList<BikeStation> list){
 
@@ -54,48 +62,72 @@ public class GeneralHelper {
     return result;
   }
 
+	/**
+	 * This method adds a new row into the bus table
+	 * @param context needed to handle the database
+	 * @param rawData holding a binary .csv file, or null if there is no data available (ex: orar 7 samabta, duminica)
+	 */
+	public static void updateDatabase(Context context, byte[] rawData){
+
+		DatabaseHandler databaseHandler = DatabaseHandler.getInstance(context);
+
+		if(rawData != null) {
+			HashMap<String, ArrayList<String>> scheduleMap = Factory.getInstance().readCsv(rawData);
+
+			databaseHandler.insertBusScheduleForToday(
+				PersistenceManager.getInstance(context).getBusNumber(),
+				scheduleMap.get(Factory.NUME_CAPETE).get(0),
+				scheduleMap.get(Factory.NUME_CAPETE).get(1),
+				scheduleMap.get(Factory.PLECARI_CAPAT_1).toString().replace("[", "").replace("]", ""),
+				scheduleMap.get(Factory.PLECARI_CAPAT_2).toString().replace("[", "").replace("]", "")
+			);
+		}else{
+			databaseHandler.insertBusScheduleNotExistent(PersistenceManager.getInstance(context).getBusNumber());
+		}
+
+	}
+
   public static int getPixelsForDP(Context c, int dpNeeded){
     DisplayMetrics displayMetrics = c.getResources().getDisplayMetrics();
     return Math.round(dpNeeded * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
   }
 
-  public static String getBusNumber(String busName){
-    return busName.split(":")[0];
-  }
-
-  public static String resolveBusInUrl(String busName, String url){
+  public static String resolveBusInUrl(String busNumber, String url){
     Calendar calendar = Calendar.getInstance();
-
-    String busExtension = getBusNumber(busName);
 
     switch (calendar.get(Calendar.DAY_OF_WEEK)){
-      case(Calendar.SATURDAY): busExtension = busExtension+"_s";
+      case(Calendar.SATURDAY): busNumber = busNumber+ORAR_SAMBATA;
         break;
-      case(Calendar.SUNDAY): busExtension = busExtension+"_d";
+      case(Calendar.SUNDAY): busNumber = busNumber+ORAR_DUMINICA;
         break;
-      default: busExtension = busExtension+"_lv";
+      default: busNumber = busNumber+ORAR_LUNI_VINERI;
     }
 
-    return url.replace("BUS_PERIOD", busExtension);
+    return url.replace("BUS_PERIOD", busNumber);
   }
 
-  public static String getPlecariAtThisHour(ArrayList<String> plecariTotale){
+	/**
+	 * This method returns a string containing departures in next hour
+	 * @param inMinutes result needed to be in minutes remaining or actual time
+	 * @param plecariTotale orar
+	 * @return minutes remaining or departure times if any, otherwise the result is an empty string
+	 */
+  public static ArrayList<String> getDeparturesInNextHour(boolean inMinutes, ArrayList<String> plecariTotale){
 
-    Calendar calendar = Calendar.getInstance();
-
-    String result="|";
+    ArrayList<String> result= new ArrayList<>();
     String plecare;
 
+		Calendar calendar = Calendar.getInstance();
+		int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+		int currentMinute = calendar.get(Calendar.MINUTE);
+
     for(String s : plecariTotale){
-      plecare = isBusTimeInNextHour(false, s, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
+      plecare = isBusTimeInNextHour(inMinutes, s, currentHour, currentMinute);
       if(plecare != null){
-        result += plecare + "| ";
+        result.add(plecare);
       }
     }
 
-    if(result.length() == 1){
-      result = String.format(" > %s min", busLeavingMaxOffset);
-    }
     return result;
   }
 
@@ -119,7 +151,7 @@ public class GeneralHelper {
     return result;
   }
 
-  public static String isBusTimeInNextHour(boolean requiresMinutes, String plecare, int currentHour, int currentMinute){
+  public static String isBusTimeInNextHour(boolean inMinutes, String plecare, int currentHour, int currentMinute){
 
     String[] busHourAndMin = plecare.split(":");
     int busHour = Integer.valueOf(busHourAndMin[0]);
@@ -131,9 +163,9 @@ public class GeneralHelper {
       int busTimeSeconds = busHour * 60 * 60 + busMin * 60;
       int timeDifference = (busTimeSeconds - currentTimeSeconds) / 60;
 
-      if (timeDifference>= busLeavingMinOffset && timeDifference <= busLeavingMaxOffset) {
+      if (timeDifference>= busLeavingMinOffset && timeDifference <= busLeavingMaxLimit) {
 
-        if (requiresMinutes) {
+        if (inMinutes) {
           return String.valueOf(timeDifference);
         } else {
           return plecare;

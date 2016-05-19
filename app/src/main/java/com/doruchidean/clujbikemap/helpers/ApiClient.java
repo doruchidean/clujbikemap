@@ -42,12 +42,13 @@ public class ApiClient {
 	}
 
 
-	public void getBusSchedule(Callback callback, String bus){
+	public void getBusSchedule(Callback callback, String busNumber){
 
 		String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
-		String url = GeneralHelper.resolveBusInUrl(bus, busUrl);
+		String url = GeneralHelper.resolveBusInUrl(busNumber, busUrl);
 
-		trace("getting bus " + bus + " at: " + url);
+		trace("getting bus " + busNumber + " at: " + url);
+
 		Request request = new Request.Builder()
 			.url(url)
 			.build();

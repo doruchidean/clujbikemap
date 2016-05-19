@@ -16,8 +16,8 @@
   <string name="notification_text">Countdown ended (%1$d:%2$d)</string>
   <string name="dialog_timer_limit_title">Timer limit</string>
   <string name="dialog_add_buses_title">Select bus</string>
-  <string name="bus_bar_subtitle_full">leaving in more than %s min</string>
-  <string name="bus_bar_subtitle_to_be_filled">leaving in</string>
+  <string name="bus_departing_over_limit">leaving in more than %s min</string>
+  <string name="bus_departing_label">leaving in</string>
   <string name="dialog_orar_complet">Orar Linia</string>
   <string name="dialog_widget_update_time_title">Update Interval</string>
   <string name="widget_default_text1">Select a bus inside</string>
