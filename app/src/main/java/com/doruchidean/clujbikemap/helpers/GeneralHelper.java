@@ -85,6 +85,7 @@ public class GeneralHelper {
 			databaseHandler.insertBusScheduleNotExistent(PersistenceManager.getInstance(context).getBusNumber());
 		}
 
+		PersistenceManager.getInstance(context).setBusTableUpdatedDay(context, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
 	}
 
   public static int getPixelsForDP(Context c, int dpNeeded){

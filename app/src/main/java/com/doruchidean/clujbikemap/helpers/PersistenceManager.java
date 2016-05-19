@@ -32,7 +32,8 @@ public class PersistenceManager {
 		SHOW_BUS_BAR="showbusbar",
 		OVERALL_BIKES="overall.bikes",
 		OVERALL_EMPTY_SPOTS="overall.empty",
-		OVERALL_MAX_NR="overall.max.nr";
+		OVERALL_MAX_NR="overall.max.nr",
+		BUS_TABLE_UPDATED_DAY = "bus.table.updated.day";
 
 	//values that need to be saved and loaded
 	private ArrayList<String> favouriteStations=new ArrayList<>();
@@ -113,10 +114,10 @@ public class PersistenceManager {
 	public void removeFavouriteStation(String stationName){
 		favouriteStations.remove(stationName);
 	}
+
 	public ArrayList<String> getFavouriteStations() {
 		return favouriteStations;
 	}
-
 	public boolean isFavourite(String stationName){
 
 		for(String s:favouriteStations){
@@ -161,10 +162,10 @@ public class PersistenceManager {
 	public void setIsCountingDown(boolean isCountingDown){
 		mIsCountingDown = isCountingDown;
 	}
+
 	public boolean getIsCountingDown(){
 		return mIsCountingDown;
 	}
-
 	public String getBusName() {
 		return mBusName;
 	}
@@ -242,5 +243,19 @@ public class PersistenceManager {
 
 	public void setShowBusBar(boolean showBusBar) {
 		this.mShowBusBar = showBusBar;
+	}
+
+	public void setBusTableUpdatedDay(Context context, int busTableCreatedDay) {
+		PreferenceManager
+			.getDefaultSharedPreferences(context)
+			.edit()
+			.putInt(BUS_TABLE_UPDATED_DAY, busTableCreatedDay)
+			.apply();
+	}
+
+	public int getBusTableUpdatedDay(Context context){
+		return PreferenceManager
+			.getDefaultSharedPreferences(context)
+			.getInt(BUS_TABLE_UPDATED_DAY, 0);
 	}
 }

@@ -166,15 +166,21 @@ public class MapsActivity extends AppCompatActivity
 		llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
 		llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
 
-		boolean showBusBar = PersistenceManager.getInstance(MapsActivity.this).getShowBusBar();
+		PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
+		boolean showBusBar = pm.getShowBusBar();
 		mBusBar = (LinearLayout) findViewById(R.id.bus_bar);
 		assert mBusBar != null;
 		mBusBar.setVisibility(showBusBar ? View.VISIBLE : View.GONE);
 		drawerBtnShowBusBar.setChecked(showBusBar);
 
-		PersistenceManager pm = PersistenceManager.getInstance(MapsActivity.this);
-		if (DatabaseHandler.getInstance(this).hasBusScheduleForToday(pm.getBusNumber()) && showBusBar) {
-			updateBusBarUI();
+		DatabaseHandler databaseHandler = DatabaseHandler.getInstance(this);
+		if (databaseHandler.hasBusScheduleForToday(pm.getBusNumber()) && showBusBar) {
+			if (databaseHandler.isFresh(pm.getBusTableUpdatedDay(this))) {
+				updateBusBarUI();
+			} else {
+				trace("in OnCreate MapsActivity: refreshing database");
+				ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, pm.getBusNumber());
+			}
 		}
 
 		mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
@@ -353,6 +359,8 @@ public class MapsActivity extends AppCompatActivity
 
 	private void setTextsInBusBar(ArrayList<String> minutesRemaining, LinearLayout parent){
 
+		parent.removeAllViews();
+		
 		TextView tvSubtitle = new TextView(MapsActivity.this);
 		tvSubtitle.setSingleLine();
 		tvSubtitle.setTextColor(ContextCompat.getColor(this, R.color.color_text_main));
@@ -364,7 +372,6 @@ public class MapsActivity extends AppCompatActivity
 			return;
 		}
 
-		parent.removeAllViews();
 
 		int padding2dp = (int) TypedValue.applyDimension(
 			TypedValue.COMPLEX_UNIT_DIP,
@@ -902,7 +909,6 @@ public class MapsActivity extends AppCompatActivity
 						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
-								//todo test this
 								if(DatabaseHandler.getInstance(MapsActivity.this).hasBusScheduleForToday(persistenceManager.getBusNumber())){
 									updateBusBarUI();
 								}else{

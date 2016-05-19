@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.doruchidean.clujbikemap.activities.MapsActivity;
 import com.doruchidean.clujbikemap.helpers.Factory;
+import com.doruchidean.clujbikemap.helpers.PersistenceManager;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -22,8 +23,8 @@ import java.util.HashMap;
 public class DatabaseHandler extends SQLiteOpenHelper {
 
 	public static final int
-		DATABASE_VERSION = 1; //todo increment with each database update (update onUpgrade callback)
-
+		DATABASE_VERSION = 1, //todo increment with each database update (update onUpgrade callback)
+		BUS_TABLE_REFRESH_INTERVAL = 10; //days
 	public static final String
 		DATABASE_NAME="clujbikemap.db",
 		BUS_TABLE_NAME="BusSchedules",
@@ -84,6 +85,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		Cursor c = db.rawQuery("SELECT * FROM " + BUS_TABLE_NAME, null);
 		int result = c.getCount();
 		c.close();
+		return result;
+	}
+
+	public boolean isFresh(int busTableCreatedDay){
+		boolean result;
+		result = (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) - busTableCreatedDay) < BUS_TABLE_REFRESH_INTERVAL;
+
+		if(!result){
+			SQLiteDatabase db = getWritableDatabase();
+			db.execSQL("DROP TABLE IF EXISTS " + BUS_TABLE_NAME);
+			onCreate(db);
+		}
+
 		return result;
 	}
 
@@ -184,7 +198,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		result = c.getCount() > 0;
 
-		MapsActivity.trace("hasBusScheduleForToday - " + busNumber + " has count: " + c.getCount());
 		c.close();
 
 		return result;
