@@ -7,7 +7,7 @@ android {
         applicationId "com.doruchidean.clujbikemap"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 20
+        versionCode 21
         versionName "2"
     }
     buildTypes {

@@ -165,7 +165,7 @@ public class GeneralHelper {
 		if(timerPickerValue > 0 && timerPickerValue < TIMER_VALUES.length){
 			return TIMER_VALUES[timerPickerValue];
 		}else{
-			return 2; //default value in PersistenceManager
+			return TIMER_VALUES[2]; //default value in PersistenceManager
 		}
   }
 
