@@ -162,7 +162,11 @@ public class GeneralHelper {
   }
 
   public static int getMinutesForTimerDisplayedValue(int timerPickerValue){
-    return TIMER_VALUES[timerPickerValue];
+		if(timerPickerValue > 0 && timerPickerValue < TIMER_VALUES.length){
+			return TIMER_VALUES[timerPickerValue];
+		}else{
+			return 2; //default value in PersistenceManager
+		}
   }
 
   public static int getMillisForWidgetDisplayedValue(int widgetPickerValue){
