@@ -27,11 +27,8 @@ public class WidgetProvider extends AppWidgetProvider {
   @Override
   public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
-    PersistenceManager pm = PersistenceManager.getInstance(context);
-
     //manually handle the widget id
-    pm.setWidgetId(appWidgetIds[0]);
-    pm.saveData(context);
+    PersistenceManager.setWidgetId(context, appWidgetIds[0]);
 
     Log.d("traces", "onUpdate");
   }
@@ -43,7 +40,7 @@ public class WidgetProvider extends AppWidgetProvider {
     WidgetUpdateIntervalFragment.setAlarmForWidgetUpdate(
       context,
       GeneralHelper.getMillisForWidgetDisplayedValue(
-        PersistenceManager.getInstance(context).getWidgetPickerValue()
+        PersistenceManager.getValueIndexForWidgetUpdateInterval(context)
       )
     );
 
@@ -54,22 +51,21 @@ public class WidgetProvider extends AppWidgetProvider {
   public void onDisabled(Context context) {
     super.onDisabled(context);
     //prevents the app to try and update the widget when is gone
-    PersistenceManager.getInstance(context).setWidgetId(0);
+    PersistenceManager.setWidgetId(context, 0);
   }
 
   @Override
   public void onReceive(Context context, Intent intent) {
     super.onReceive(context, intent);
 
-    PersistenceManager persistenceManager = PersistenceManager.getInstance(context);
-    int widgetId = persistenceManager.getWidgetId();
+    int widgetId = PersistenceManager.getWidgetId(context);
 
     Log.d("traces", "widgetProvider onReceive " + widgetId);
 
     if(widgetId > 0) {
       mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.widget);
 
-      updateTexts(context, persistenceManager.getBusNumber());
+      updateTexts(context, PersistenceManager.getBusNumber(context));
 
       Intent onClickIntent = new Intent(context, MapsActivity.class);
       PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, onClickIntent, PendingIntent.FLAG_ONE_SHOT);

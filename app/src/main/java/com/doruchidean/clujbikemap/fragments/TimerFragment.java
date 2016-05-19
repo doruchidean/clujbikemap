@@ -19,7 +19,6 @@ import com.doruchidean.clujbikemap.helpers.PersistenceManager;
 public class TimerFragment extends Fragment {
 
 	@Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		final PersistenceManager persistenceManager = PersistenceManager.getInstance(getContext());
 
 		View fragmentView = inflater.inflate(R.layout.fragment_timer_limit, container, false);
 
@@ -29,7 +28,7 @@ public class TimerFragment extends Fragment {
 		picker.setDisplayedValues(GeneralHelper.getTimerPickerDisplayedValues());
 
 		//todo START remove temporaryCheck validation after next update (current code 17)
-			int temporaryCheck = persistenceManager.getTimerValueIndex();
+			int temporaryCheck = PersistenceManager.getTimerValueIndex(getContext());
 			if(temporaryCheck < 0 || temporaryCheck >= GeneralHelper.TIMER_VALUES.length){
 				temporaryCheck = 2;
 			}
@@ -39,7 +38,7 @@ public class TimerFragment extends Fragment {
 		picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
 			@Override
 			public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-				persistenceManager.setTimerValueIndex(newVal);
+				PersistenceManager.setTimerValueIndex(getContext(), newVal);
 			}
 		});
 

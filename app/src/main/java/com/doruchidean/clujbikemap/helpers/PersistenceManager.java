@@ -3,7 +3,6 @@ package com.doruchidean.clujbikemap.helpers;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Base64;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,19 +14,16 @@ import java.util.HashMap;
  */
 public class PersistenceManager {
 
-	private static PersistenceManager mInstance;
-
 	//constant keys
 	public static final String
 		FAVOURITE_STATIONS = "favouritesStations",
 		SHOWS_FAVOURITES_ONLY = "showFavourites",
 		COLD_LIMIT = "coldlimit",
 		HOT_LIMIT = "hotlimit",
-		TIMER_MINUTES="timermin",
+		TIMER_VALUE_INDEX ="timermin",
 		IS_COUNTING_DOWN = "iscounting",
-		BUSES="buses",
+		BUS_NAME ="buses",
 		WIDGET_ID="widgetid",
-		BUS_SCHEDULE = "busschedule",
 		WIDGET_UPDATE_INTERVAL="widgetupdateinterval",
 		SHOW_BUS_BAR="showbusbar",
 		OVERALL_BIKES="overall.bikes",
@@ -35,168 +31,138 @@ public class PersistenceManager {
 		OVERALL_MAX_NR="overall.max.nr",
 		BUS_TABLE_UPDATED_DAY = "bus.table.updated.day";
 
-	//values that need to be saved and loaded
-	private ArrayList<String> favouriteStations=new ArrayList<>();
-
-	private boolean
-		showFavouritesOnly,
-		mIsCountingDown,
-		mShowBusBar;
-
-	private int
-		mColdLimit,
-		mHotLimit,
-		mTimerValueIndex,
-		mWidgetUpdateInterval,
-		mWidgetId;
-
-	private String mBusName;
-
-	//todo update pattern: delete save/load methods and add independent handling for each getter and setter
-	//todo replace context dependency in constructor and add it as dependency in getters/setters
-	//todo FOLLOW EXAMPLE setBusSchedule and remove the static mInstance field
-	private PersistenceManager(Context context){
-
-		//load data
+	//// TODO: 19/05/16 TEST ALL FAVOURITE STATIONS FUNCTIONALITIES
+	public static void setFavouriteStation(Context context, String stationName){
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 
-		String raw = sp.getString(FAVOURITE_STATIONS, "");
-		String[] rawList;
-		if (raw.length() > 0) {
-			rawList = raw.split(",");
-			Collections.addAll(favouriteStations, rawList);
-		}
-		showFavouritesOnly = sp.getBoolean(SHOWS_FAVOURITES_ONLY, false);
-		mIsCountingDown = sp.getBoolean(IS_COUNTING_DOWN, false);
-		mColdLimit = sp.getInt(COLD_LIMIT, 3);
-		mHotLimit = sp.getInt(HOT_LIMIT, 3);
-		mTimerValueIndex = sp.getInt(TIMER_MINUTES, 2);
-		mBusName = sp.getString(BUSES, "");
-		mWidgetUpdateInterval = sp.getInt(WIDGET_UPDATE_INTERVAL, 3);
-		mShowBusBar = sp.getBoolean(SHOW_BUS_BAR, false);
-		mWidgetId = sp.getInt(WIDGET_ID, 0);
+		String favouriteStationCSV = sp.getString(FAVOURITE_STATIONS, "");
+		favouriteStationCSV += ","+stationName;
+
+		sp.edit()
+			.putString(FAVOURITE_STATIONS, favouriteStationCSV)
+			.apply();
 	}
 
-	public void saveData(Context context){
+	public static void removeFavouriteStation(Context context, String stationName){
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-		SharedPreferences.Editor editor = sp.edit();
 
-		String fakeJson = null;
-		for(int i = 0; i<favouriteStations.size(); i++){
-			fakeJson = fakeJson + "," + favouriteStations.get(i);
-		}
+		String favouriteStationsCSV = sp.getString(FAVOURITE_STATIONS, ","+stationName);
 
-		editor.putString(FAVOURITE_STATIONS, fakeJson);
-		editor.putBoolean(SHOWS_FAVOURITES_ONLY, showFavouritesOnly);
-		editor.putInt(COLD_LIMIT, mColdLimit);
-		editor.putInt(HOT_LIMIT, mHotLimit);
-		editor.putInt(TIMER_MINUTES, mTimerValueIndex);
-		editor.putBoolean(IS_COUNTING_DOWN, mIsCountingDown);
-		editor.putString(BUSES, mBusName);
-		editor.putInt(WIDGET_UPDATE_INTERVAL, mWidgetUpdateInterval);
-		editor.putBoolean(SHOW_BUS_BAR, mShowBusBar);
-		editor.putInt(WIDGET_ID, mWidgetId);
-
-		editor.apply();
+		sp.edit()
+			.putString(FAVOURITE_STATIONS, favouriteStationsCSV.replace(","+stationName, ""))
+			.apply();
 	}
 
-	public static PersistenceManager getInstance(Context context){
-		if(mInstance == null){
-			mInstance = new PersistenceManager(context);
-		}
-		return mInstance;
-	}
+	public static ArrayList<String> getFavouriteStations(Context context) {
+		ArrayList<String> result = new ArrayList<>();
 
-	public void addFavouriteStation(String stationName){
-		favouriteStations.add(stationName);
-	}
+		Collections.addAll(
+			result,
+			PreferenceManager.getDefaultSharedPreferences(context).getString(FAVOURITE_STATIONS, "").split(","));
 
-	public void removeFavouriteStation(String stationName){
-		favouriteStations.remove(stationName);
+		return result;
 	}
+	public static boolean isFavourite(Context context, String stationName){
+		ArrayList<String> favouriteStations = new ArrayList<>();
+		Collections.addAll(
+			favouriteStations,
+			PreferenceManager.getDefaultSharedPreferences(context).getString(FAVOURITE_STATIONS, "").split(",")
+		);
 
-	public ArrayList<String> getFavouriteStations() {
-		return favouriteStations;
-	}
-	public boolean isFavourite(String stationName){
-
-		for(String s:favouriteStations){
+		for(String s : favouriteStations){
 			if (s.equalsIgnoreCase(stationName)) return true;
 		}
 
 		return false;
 	}
 
-	public void setShowFavouritesOnly(boolean showFavouritesOnly) {
-		this.showFavouritesOnly = showFavouritesOnly;
+	public static void setShowFavouritesOnly(Context context, boolean showFavouritesOnly) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putBoolean(SHOWS_FAVOURITES_ONLY, showFavouritesOnly)
+			.apply();
 	}
 
-	public int getTimerValueIndex() {
-		return mTimerValueIndex;
+	public static boolean getShowFavouritesOnly(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SHOWS_FAVOURITES_ONLY, false);
 	}
 
-	public void setTimerValueIndex(int mTimerMinutes) {
-		this.mTimerValueIndex = mTimerMinutes;
+	public static int getTimerValueIndex(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getInt(TIMER_VALUE_INDEX, 2);
 	}
 
-	public boolean getShowFavouritesOnly() {
-		return showFavouritesOnly;
+	public static void setTimerValueIndex(Context context, int valueIndex) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putInt(TIMER_VALUE_INDEX, valueIndex)
+			.apply();
 	}
 
-	public int getHotLimit() {
-		return mHotLimit;
+	public static int getHotLimit(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context).getInt(HOT_LIMIT, 3);
 	}
 
-	public void setHotLimit(int mHotLimit) {
-		this.mHotLimit = mHotLimit;
+	public static void setHotLimit(Context context, int hotLimit) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putInt(HOT_LIMIT, hotLimit)
+			.apply();
 	}
 
-	public int getColdLimit() {
-		return mColdLimit;
+	public static int getColdLimit(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getInt(COLD_LIMIT, 3);
 	}
 
-	public void setColdLimit(int mColdLimit) {
-		this.mColdLimit = mColdLimit;
+	public static void setColdLimit(Context context, int coldLimit) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putInt(COLD_LIMIT, coldLimit)
+			.apply();
 	}
 
-	public void setIsCountingDown(boolean isCountingDown){
-		mIsCountingDown = isCountingDown;
+	public static void setIsCountingDown(Context context, boolean isCountingDown){
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putBoolean(IS_COUNTING_DOWN, isCountingDown)
+			.apply();
 	}
 
-	public boolean getIsCountingDown(){
-		return mIsCountingDown;
+	public static boolean getIsCountingDown(Context context){
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getBoolean(IS_COUNTING_DOWN, false);
 	}
-	public String getBusName() {
-		return mBusName;
-	}
-
-	public String getBusNumber(){
-		return mBusName.split(":")[0];
-	}
-
-	public void setBusName(String busName) {
-		this.mBusName = busName;
+	public static void setBusName(Context context, String busName) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+		.edit()
+		.putString(BUS_NAME, busName)
+		.apply();
 	}
 
-	public int getWidgetId() {
-
-		return mWidgetId;
+	public static String getBusName(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getString(BUS_NAME, "");
 	}
 
-	public void setWidgetId(int widgetId) {
-		mWidgetId = widgetId;
+	public static String getBusNumber(Context context){
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getString(BUS_NAME, "")
+			.split(":")[0];
 	}
 
-	public void setBusSchedule(Context context, byte[] binaryData) {
-
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-		SharedPreferences.Editor editor = sp.edit();
-		editor.putString(BUS_SCHEDULE, Base64.encodeToString(binaryData, Base64.NO_WRAP));
-		editor.apply();
-
+	public static int getWidgetId(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context).getInt(WIDGET_ID, 0);
 	}
 
-	public void setOverallStats(Context context, int allBikes, int allEmptySpots, int maxNrOfBikes){
+	public static void setWidgetId(Context context, int widgetId) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putInt(WIDGET_ID, widgetId)
+			.apply();
+	}
+
+	public static void setOverallStats(Context context, int allBikes, int allEmptySpots, int maxNrOfBikes){
 		PreferenceManager.getDefaultSharedPreferences(context)
 			.edit()
 			.putInt(OVERALL_BIKES, allBikes)
@@ -205,7 +171,7 @@ public class PersistenceManager {
 			.apply();
 	}
 
-	public HashMap<String, Integer> getOverallStats(Context context){
+	public static HashMap<String, Integer> getOverallStats(Context context){
 		HashMap<String, Integer> result = new HashMap<>();
 
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
@@ -217,35 +183,31 @@ public class PersistenceManager {
 		return result;
 	}
 
-	//todo replace with database values (widgetProvider)
-	public byte[] getBusSchedule(Context context){
-
-		byte[] result=null;
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-		String s = sp.getString(BUS_SCHEDULE, null);
-		if(s != null){
-			result = Base64.decode(s, Base64.NO_WRAP);
-		}
-		return result;
+	public static void setValueIndexForWidgetUpdateInterval(Context context, int interval){
+		PreferenceManager.getDefaultSharedPreferences(context)
+		.edit()
+		.putInt(WIDGET_UPDATE_INTERVAL, interval)
+		.apply();
 	}
 
-	public void setWidgetPickerValue(int interval){
-		mWidgetUpdateInterval = interval;
+	public static int getValueIndexForWidgetUpdateInterval(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getInt(WIDGET_UPDATE_INTERVAL, 3);
 	}
 
-	public int getWidgetPickerValue() {
-		return mWidgetUpdateInterval;
+	public static boolean getShowBusBar(Context context) {
+		return PreferenceManager.getDefaultSharedPreferences(context)
+			.getBoolean(SHOW_BUS_BAR, false);
 	}
 
-	public boolean getShowBusBar() {
-		return mShowBusBar;
+	public static void setShowBusBar(Context context, boolean showBusBar) {
+		PreferenceManager.getDefaultSharedPreferences(context)
+			.edit()
+			.putBoolean(SHOW_BUS_BAR, showBusBar)
+			.apply();
 	}
 
-	public void setShowBusBar(boolean showBusBar) {
-		this.mShowBusBar = showBusBar;
-	}
-
-	public void setBusTableUpdatedDay(Context context, int busTableCreatedDay) {
+	public static void setBusTableUpdatedDay(Context context, int busTableCreatedDay) {
 		PreferenceManager
 			.getDefaultSharedPreferences(context)
 			.edit()
@@ -253,7 +215,7 @@ public class PersistenceManager {
 			.apply();
 	}
 
-	public int getBusTableUpdatedDay(Context context){
+	public static int getBusTableUpdatedDay(Context context){
 		return PreferenceManager
 			.getDefaultSharedPreferences(context)
 			.getInt(BUS_TABLE_UPDATED_DAY, 0);

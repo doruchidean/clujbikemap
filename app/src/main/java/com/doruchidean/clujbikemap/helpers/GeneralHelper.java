@@ -75,17 +75,17 @@ public class GeneralHelper {
 			HashMap<String, ArrayList<String>> scheduleMap = Factory.getInstance().readCsv(rawData);
 
 			databaseHandler.insertBusScheduleForToday(
-				PersistenceManager.getInstance(context).getBusNumber(),
+				PersistenceManager.getBusNumber(context),
 				scheduleMap.get(Factory.NUME_CAPETE).get(0),
 				scheduleMap.get(Factory.NUME_CAPETE).get(1),
 				scheduleMap.get(Factory.PLECARI_CAPAT_1).toString().replace("[", "").replace("]", ""),
 				scheduleMap.get(Factory.PLECARI_CAPAT_2).toString().replace("[", "").replace("]", "")
 			);
 		}else{
-			databaseHandler.insertBusScheduleNotExistent(PersistenceManager.getInstance(context).getBusNumber());
+			databaseHandler.insertBusScheduleNotExistent(PersistenceManager.getBusNumber(context));
 		}
 
-		PersistenceManager.getInstance(context).setBusTableUpdatedDay(context, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
+		PersistenceManager.setBusTableUpdatedDay(context, Calendar.getInstance().get(Calendar.DAY_OF_YEAR));
 	}
 
   public static int getPixelsForDP(Context c, int dpNeeded){

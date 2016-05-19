@@ -27,7 +27,7 @@ public class OverallStatsFragment extends Fragment {
 		final TextView tvSpots = (TextView) fragmentView.findViewById(R.id.tv_overall_stats_empty_spots);
 		final TextView tvTotal = (TextView) fragmentView.findViewById(R.id.tv_overall_stats_total);
 
-		HashMap<String, Integer> stats = PersistenceManager.getInstance(getContext()).getOverallStats(getContext());
+		HashMap<String, Integer> stats = PersistenceManager.getOverallStats(getContext());
 
 		tvBikes.setText(String.format(getContext().getString(
 			R.string.overall_stats_all_bikes), stats.get(PersistenceManager.OVERALL_BIKES)));

@@ -27,18 +27,16 @@ public class WidgetUpdateIntervalFragment extends Fragment {
 
 	@Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-		final PersistenceManager persistenceManager = PersistenceManager.getInstance(getContext());
-
 		View fragmentView = View.inflate(getContext(), R.layout.fragment_widget_update_interval, null);
 		NumberPicker picker = (NumberPicker) fragmentView.findViewById(R.id.picker_dialog_widget_time);
 		picker.setMinValue(0);
 		picker.setMaxValue(GeneralHelper.WIDGET_UPDATE_HOUR_INTERVALS.length-1);
-		picker.setValue(persistenceManager.getWidgetPickerValue());
+		picker.setValue(PersistenceManager.getValueIndexForWidgetUpdateInterval(getContext()));
 		picker.setDisplayedValues(GeneralHelper.getWidgetPickerDisplayedValues());
 		picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
 			@Override
 			public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-				persistenceManager.setWidgetPickerValue(newVal);
+				PersistenceManager.setValueIndexForWidgetUpdateInterval(getContext(), newVal);
 				setAlarmForWidgetUpdate(
 					getContext(),
 					GeneralHelper.getMillisForWidgetDisplayedValue(newVal)

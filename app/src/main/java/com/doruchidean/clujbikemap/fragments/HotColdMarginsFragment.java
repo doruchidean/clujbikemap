@@ -31,10 +31,8 @@ public class HotColdMarginsFragment extends Fragment {
 
 	@Nullable @Override public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-		final PersistenceManager pm = PersistenceManager.getInstance(getContext());
-
-		final int mColdLimit = pm.getColdLimit();
-		final int mHotLimit = pm.getHotLimit();
+		final int mColdLimit = PersistenceManager.getColdLimit(getContext());
+		final int mHotLimit = PersistenceManager.getHotLimit(getContext());
 
 		View fragmentView = inflater.inflate(R.layout.fragment_hot_cold_margings, container, false);
 
@@ -64,8 +62,8 @@ public class HotColdMarginsFragment extends Fragment {
 		rangeBar.setOnRangeBarChangeListener(new RangeBar.OnRangeBarChangeListener() {
 			@Override
 			public void onIndexChangeListener(RangeBar rangeBar, int i, int i1) {
-				pm.setColdLimit(i);
-				pm.setHotLimit(hypotheticalMaxRange - i1);
+				PersistenceManager.setColdLimit(getContext(), i);
+				PersistenceManager.setHotLimit(getContext(), hypotheticalMaxRange - i1);
 
 				tvColdMargin.setText(String.format("%s %s", getContext().getString(R.string.dialog_margins_cold), i));
 				tvHotMargin.setText(String.format("%s %s", getContext().getString(R.string.dialog_margins_hot), hypotheticalMaxRange - i1));

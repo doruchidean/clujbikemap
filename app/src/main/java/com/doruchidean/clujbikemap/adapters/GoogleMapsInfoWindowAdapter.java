@@ -44,19 +44,15 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
       return null;
     }
 
-
-    PersistenceManager pm = PersistenceManager.getInstance(mContext);
-    MapsActivity.trace("getInfoWindow");
-
     View rootView = View.inflate(mContext, R.layout.info_window_station, null);
 
     GradientDrawable bg = (GradientDrawable) rootView.getBackground();
     int strokeSize = GeneralHelper.getPixelsForDP(mContext, 3);
     if (station.statusType.equalsIgnoreCase("offline")) {
       bg.setStroke(strokeSize, mContext.getResources().getColor(R.color.station_gray));
-    } else if (station.occupiedSpots < pm.getColdLimit()) {
+    } else if (station.occupiedSpots < PersistenceManager.getColdLimit(mContext)) {
       bg.setStroke(strokeSize, mContext.getResources().getColor(R.color.station_blue));
-    } else if (station.occupiedSpots < station.maximumNumberOfBikes - pm.getHotLimit()) {
+    } else if (station.occupiedSpots < station.maximumNumberOfBikes - PersistenceManager.getHotLimit(mContext)) {
       bg.setStroke(strokeSize, mContext.getResources().getColor(R.color.station_green));
     } else {
       bg.setStroke(strokeSize, mContext.getResources().getColor(R.color.station_red));
