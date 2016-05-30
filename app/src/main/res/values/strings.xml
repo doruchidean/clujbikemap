@@ -50,6 +50,10 @@
   <string name="overall_stats_empty_spots">Empty Spots: %s</string>
   <string name="overall_stats_max_nr_bikes">Max Number: %s</string>
   <string name="hot_cold_margins_label_btn_set">Set</string>
+  <string name="return_time_limit_warning">Return the bike in %s min to avoid penalties.</string>
+  <string name="infowindow_free_spots">Empty Spots: %s</string>
+  <string name="infowindow_available_bikes">Bikes available: %s</string>
+  <string name="infowindow_status">Status: %s</string>
 
   <string-array name="available_buses">
 

@@ -15,6 +15,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * Created by Doru on 18/04/16.
@@ -75,14 +76,26 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
 
     stationDialogName.setText(station.stationName);
     stationDialogAddress.setText(station.address);
-    stationDialogEmptySpots.setText(String.format("Locuri libere: %s", station.emptySpots));
-    stationDialogOccupiedSpots.setText(String.format("Biciclete disponibile: %s", station.occupiedSpots));
-    stationDialogStatus.setText(String.format("Status: %s", station.statusType));
+    stationDialogEmptySpots.setText(String.format(mContext.getString(R.string.infowindow_free_spots), station.emptySpots));
+    stationDialogOccupiedSpots.setText(String.format(mContext.getString(R.string.infowindow_available_bikes), station.occupiedSpots));
+    stationDialogStatus.setText(String.format(mContext.getString(R.string.infowindow_status), station.statusType));
 
     Drawable isFavourite = mContext.getResources().getDrawable(
             station.isFavourite ? R.drawable.ic_favourite_station : R.drawable.ic_not_favourite_station);
 
     stationDialogName.setCompoundDrawablesWithIntrinsicBounds(null, null, isFavourite, null);
+
+		//warning
+		if(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) == 23){
+			TextView warning = (TextView) rootView.findViewById(R.id.tv_time_warning);
+			String s = String.format(
+				mContext.getString(R.string.return_time_limit_warning),
+				(60 - Calendar.getInstance().get(Calendar.MINUTE))
+			);
+			MapsActivity.trace(s);
+			warning.setText(s);
+			warning.setVisibility(View.VISIBLE);
+		}
 
     return rootView;
   }

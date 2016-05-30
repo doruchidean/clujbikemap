@@ -1,102 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:minWidth="200dp"
+  android:minHeight="200dp"
+  android:background="@drawable/bg_info_window"
+  android:padding="16dp"
+  >
+
+  <TextView
+    android:id="@+id/tv_station_name"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="40dp"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:text="Piata Mihai Viteazul"
+    android:textColor="@android:color/black"
+    android:gravity="center"
+    android:paddingStart="20dp"
+    android:paddingLeft="20dp"
+    android:drawableEnd="@drawable/ic_not_favourite_station"
+    android:drawableRight="@drawable/ic_not_favourite_station"
+    />
+
+  <TextView
+    android:id="@+id/tvDialogAddress"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:minWidth="200dp"
-    android:minHeight="200dp"
-    android:background="@drawable/bg_info_window"
-    android:padding="16dp"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:text="Medium Text"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginBottom="8dp"/>
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
     >
 
     <TextView
-        android:id="@+id/tv_station_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Piata Mihai Viteazul"
-        android:textColor="@android:color/black"
-        android:gravity="center"
-        android:paddingStart="20dp"
-        android:paddingLeft="20dp"
-        android:drawableEnd="@drawable/ic_not_favourite_station"
-        android:drawableRight="@drawable/ic_not_favourite_station"
-        />
+      android:id="@+id/tv_station_minutes"
+      android:layout_width="0dp"
+      android:layout_weight=".5"
+      android:layout_height="wrap_content"
+      android:textColor="@android:color/black"
+      android:drawableLeft="@drawable/ic_distance_mins"
+      android:drawableStart="@drawable/ic_distance_mins"
+      android:textSize="12sp"
+      android:paddingTop="4dp"
+      android:paddingBottom="4dp"
+      android:gravity="center_vertical|start"
+      android:visibility="invisible"
+      />
 
     <TextView
-        android:id="@+id/tvDialogAddress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Medium Text"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="8dp"/>
+      android:id="@+id/tv_station_steps"
+      android:layout_width="0dp"
+      android:layout_weight=".5"
+      android:layout_height="wrap_content"
+      android:textColor="@android:color/black"
+      android:drawableLeft="@drawable/ic_distance_steps"
+      android:drawableStart="@drawable/ic_distance_steps"
+      android:textSize="12sp"
+      android:paddingTop="4dp"
+      android:paddingBottom="4dp"
+      android:gravity="center_vertical|start"
+      android:visibility="invisible"
+      />
+  </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        >
+  <TextView
+    android:id="@+id/tvEmptySpots"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:text="Medium Text"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginBottom="8dp"/>
 
-        <TextView
-            android:id="@+id/tv_station_minutes"
-            android:layout_width="0dp"
-            android:layout_weight=".5"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:drawableLeft="@drawable/ic_distance_mins"
-            android:drawableStart="@drawable/ic_distance_mins"
-            android:textSize="12sp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:gravity="center_vertical|start"
-            android:visibility="invisible"
-            />
+  <TextView
+    android:id="@+id/tvOcuppiedSpots"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:text="Medium Text"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginBottom="8dp"/>
 
-        <TextView
-            android:id="@+id/tv_station_steps"
-            android:layout_width="0dp"
-            android:layout_weight=".5"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:drawableLeft="@drawable/ic_distance_steps"
-            android:drawableStart="@drawable/ic_distance_steps"
-            android:textSize="12sp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:gravity="center_vertical|start"
-            android:visibility="invisible"
-            />
-    </LinearLayout>
+  <TextView
+    android:id="@+id/tvStatus"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:text="Medium Text"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginBottom="8dp"
+    />
 
-        <TextView
-            android:id="@+id/tvEmptySpots"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Medium Text"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvOcuppiedSpots"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Medium Text"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Medium Text"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="8dp"/>
-
+  <TextView
+    android:id="@+id/tv_time_warning"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textColor="@color/station_red"
+    android:gravity="center"
+    android:lines="4"
+    android:visibility="gone"
+    android:drawableLeft="@drawable/ic_warning"
+    android:drawableStart="@drawable/ic_warning"
+    />
 </LinearLayout>
