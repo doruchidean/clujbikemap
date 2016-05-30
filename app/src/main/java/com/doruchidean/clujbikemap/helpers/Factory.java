@@ -1,5 +1,6 @@
 package com.doruchidean.clujbikemap.helpers;
 
+import com.doruchidean.clujbikemap.activities.MapsActivity;
 import com.doruchidean.clujbikemap.models.BikeStation;
 
 import org.json.JSONArray;
@@ -60,6 +61,12 @@ public class Factory {
         bikeStation.longitude = j.getDouble("Longitude");
         bikeStation.maximumNumberOfBikes = j.getInt("MaximumNumberOfBikes");
         bikeStation.stationStatus = j.getString("Status");
+
+				if(bikeStation.stationName.equalsIgnoreCase("horea - gara")
+					|| bikeStation.stationName.equalsIgnoreCase("fabricii")){
+
+					bikeStation.emptySpots -= 10;
+				}
 
         stationsArray.add(bikeStation);
 
