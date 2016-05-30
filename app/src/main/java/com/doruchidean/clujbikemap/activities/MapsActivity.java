@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -40,6 +41,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RemoteViews;
@@ -74,6 +76,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -174,6 +177,47 @@ public class MapsActivity extends AppCompatActivity
 		mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
 
 		buildGoogleApiClient();
+
+
+		//testing
+
+		ApiClient.getInstance().getAdDetails(new Callback() {
+			@Override public void onFailure(Call call, IOException e) {
+				Log.e("traces", e.getMessage());
+			}
+
+			@Override public void onResponse(Call call, Response response) throws IOException {
+				try {
+					JSONObject adDetails = new JSONObject(response.body().string());
+					final String adImage = adDetails.getString("ad_image");
+					final String adWebpage = adDetails.getString("ad_webpage");
+					MapsActivity.this.runOnUiThread(new Runnable() {
+						@Override public void run() {
+							setUpAd(adImage, adWebpage);
+						}
+					});
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	private void setUpAd(String imageUrl, final String webPageUrl){
+		ImageView ivAd = (ImageView) findViewById(R.id.iv_ad);
+
+		if (ivAd == null) return;
+
+		Picasso.with(this)
+			.load(imageUrl)
+			.into(ivAd);
+
+		ivAd.setOnClickListener(new View.OnClickListener() {
+			@Override public void onClick(View v) {
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(webPageUrl));
+				startActivity(intent);
+			}
+		});
 	}
 
 	@Override protected void onPostCreate(@Nullable Bundle savedInstanceState) {

@@ -76,6 +76,19 @@ public class ApiClient {
 		response.enqueue(callback);
 	}
 
+	public void getAdDetails(Callback callback){
+
+		trace("get ad details: " + "https://clujbikemap.firebaseio.com/.json");
+
+		Request request = new Request.Builder()
+			.url("https://clujbikemap.firebaseio.com/.json")
+			.build();
+
+		Call response = client.newCall(request);
+
+		response.enqueue(callback);
+	}
+
 	private void trace(String s){
 		Log.d("traces", s);
 	}

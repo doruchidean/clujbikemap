@@ -64,6 +64,14 @@
         android:textStyle="bold"
         />
 
+      <ImageView
+        android:id="@+id/iv_ad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:scaleType="fitXY"
+        />
+
       <LinearLayout
         android:id="@id/bus_bar"
         android:layout_width="match_parent"
