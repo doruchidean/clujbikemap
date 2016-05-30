@@ -449,7 +449,7 @@ public class MapsActivity extends AppCompatActivity
 	private void refreshUIButtons() {
 
 		btnShowFavourites.setBackgroundResource(
-			PersistenceManager.getShowFavouritesOnly(this) ? R.drawable.ic_favourite : R.drawable.ic_favourites_pressed);
+			PersistenceManager.getShowFavouritesOnly(this) ? R.drawable.ic_favourites_pressed : R.drawable.ic_favourite);
 
 		if (PersistenceManager.getIsCountingDown(this)) {
 			btnTimer.setBackgroundResource(R.drawable.ic_timer_pressed);
@@ -634,7 +634,7 @@ public class MapsActivity extends AppCompatActivity
 							MapsActivity.this.runOnUiThread(new Runnable() {
 								public void run() {
 									if (marker.isInfoWindowShown()) {
-										BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
+										BikeStation station = GeneralHelper.findStationInArray(marker.getTitle(), mStationsArray);
 										mStationsArray.get(mStationsArray.indexOf(station)).distanceMinutes = distance[1];
 										mStationsArray.get(mStationsArray.indexOf(station)).distanceSteps= distance[0];
 
@@ -700,7 +700,7 @@ public class MapsActivity extends AppCompatActivity
 	private void hideNonFavouriteMarkers(){
 		BikeStation matchingStation;
 		for(MarkerOptions m : mapMarkers){
-			matchingStation = GeneralHelper.binarySearchStation(m.getTitle(), mStationsArray);
+			matchingStation = GeneralHelper.findStationInArray(m.getTitle(), mStationsArray);
 			if(matchingStation != null) {
 				m.visible(PersistenceManager.isFavourite(this, matchingStation.stationName));
 			}
@@ -783,7 +783,7 @@ public class MapsActivity extends AppCompatActivity
 	}
 
 	@Override public void onInfoWindowClick(Marker marker) {
-		BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
+		BikeStation station = GeneralHelper.findStationInArray(marker.getTitle(), mStationsArray);
 		if(station == null) return;
 
 		if (station.isFavourite) {

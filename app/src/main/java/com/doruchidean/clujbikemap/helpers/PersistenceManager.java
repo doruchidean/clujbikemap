@@ -56,9 +56,14 @@ public class PersistenceManager {
 	public static ArrayList<String> getFavouriteStations(Context context) {
 		ArrayList<String> result = new ArrayList<>();
 
-		Collections.addAll(
-			result,
-			PreferenceManager.getDefaultSharedPreferences(context).getString(FAVOURITE_STATIONS, "").split(","));
+		String favouriteStations = PreferenceManager.getDefaultSharedPreferences(context)
+			.getString(FAVOURITE_STATIONS, "");
+
+		if (favouriteStations.length() > 0) {
+			Collections.addAll(
+				result,
+				favouriteStations.split(","));
+		}
 
 		return result;
 	}

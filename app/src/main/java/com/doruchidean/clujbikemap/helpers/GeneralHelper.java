@@ -37,7 +37,7 @@ public class GeneralHelper {
 		ORAR_DUMINICA="_d",
 		ORAR_LUNI_VINERI="_lv";
 
-  public static BikeStation binarySearchStation(String markerTitleToFind, ArrayList<BikeStation> list){
+  public static BikeStation findStationInArray(String markerTitleToFind, ArrayList<BikeStation> list){
 
     BikeStation result = null;
 

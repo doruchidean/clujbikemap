@@ -38,7 +38,7 @@ public class GoogleMapsInfoWindowAdapter implements GoogleMap.InfoWindowAdapter 
   @Override public View getInfoWindow(final Marker marker) {
 
 
-    final BikeStation station = GeneralHelper.binarySearchStation(marker.getTitle(), mStationsArray);
+    final BikeStation station = GeneralHelper.findStationInArray(marker.getTitle(), mStationsArray);
 
     if(station == null){
       return null;
