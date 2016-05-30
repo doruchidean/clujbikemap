@@ -1,6 +1,5 @@
 package com.doruchidean.clujbikemap.helpers;
 
-import com.doruchidean.clujbikemap.activities.MapsActivity;
 import com.doruchidean.clujbikemap.models.BikeStation;
 
 import org.json.JSONArray;

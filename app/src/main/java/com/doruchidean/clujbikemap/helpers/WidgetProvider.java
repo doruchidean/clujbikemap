@@ -60,8 +60,6 @@ public class WidgetProvider extends AppWidgetProvider {
 
     int widgetId = PersistenceManager.getWidgetId(context);
 
-    Log.d("traces", "widgetProvider onReceive " + widgetId);
-
     if(widgetId > 0) {
       mRemoteViews = new RemoteViews(context.getPackageName(), R.layout.widget);
 
@@ -81,9 +79,10 @@ public class WidgetProvider extends AppWidgetProvider {
   }
 
   public void updateTexts(Context context, String busNumber) {
+
 		HashMap<String, ArrayList<String>> leavingTimes = DatabaseHandler.getInstance(context).getBusScheduleForToday(busNumber);
 
-    if(busNumber.length() == 0 || leavingTimes.get(Factory.NUME_CAPETE).size() == 0) return;
+		if(busNumber.length() == 0 || leavingTimes.get(Factory.NUME_CAPETE).size() == 0) return;
 
 		ArrayList<String> plecariCapat1 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_1));
 		ArrayList<String> plecariCapat2 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_2));

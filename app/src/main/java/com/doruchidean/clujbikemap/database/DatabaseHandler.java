@@ -253,7 +253,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			}
 
 			result.put(Factory.NUME_CAPETE, numeCapete);
-
 			result.put(Factory.PLECARI_CAPAT_1, plecariCapat1);
 			result.put(Factory.PLECARI_CAPAT_2, plecariCapat2);
 		}

@@ -269,7 +269,6 @@ public class MapsActivity extends AppCompatActivity
 
 	private Callback getBusScheduleCallback = new Callback() {
 		@Override public void onFailure(Call call, IOException e) {
-			trace("fail gettingBus " + e.getMessage());
 			Log.e("traces", "fail gettingbus " + e.getMessage());
 		}
 

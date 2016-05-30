@@ -25,7 +25,7 @@ public class TimerFragment extends Fragment {
 		NumberPicker picker = (NumberPicker) fragmentView.findViewById(R.id.picker_dialog_timer);
 		picker.setMinValue(0);
 		picker.setMaxValue(GeneralHelper.TIMER_VALUES.length-1);
-		picker.setDisplayedValues(GeneralHelper.getTimerPickerDisplayedValues());
+		picker.setDisplayedValues(GeneralHelper.getTimerPickerDisplayedValues(getContext()));
 
 		//todo START remove temporaryCheck validation after next update (current code 17)
 			int temporaryCheck = PersistenceManager.getTimerValueIndex(getContext());

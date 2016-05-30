@@ -19,9 +19,13 @@
   <string name="bus_departing_over_limit">leaving in more than %s min</string>
   <string name="bus_departing_label">leaving in</string>
   <string name="dialog_orar_complet">Orar Linia</string>
-  <string name="dialog_widget_update_time_title">Update Interval</string>
+
+  <string name="widget_update_time_title">Update every:</string>
   <string name="widget_default_text1">Select a bus inside</string>
   <string name="widget_default_text2">ClujBike Map</string>
+  <string name="picker_hour">" hour"</string>
+  <string name="picker_hours">" hours"</string>
+  <string name="picker_minutes">" min"</string>
 
   <string name="options_menu_hot_cold_margins">Hot/Cold Margins</string>
   <string name="options_menu_contact">Contact</string>

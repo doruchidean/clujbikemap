@@ -3,6 +3,7 @@ package com.doruchidean.clujbikemap.helpers;
 import android.content.Context;
 import android.util.DisplayMetrics;
 
+import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.database.DatabaseHandler;
 import com.doruchidean.clujbikemap.models.BikeStation;
 
@@ -27,8 +28,9 @@ public class GeneralHelper {
     busLeavingMinOffset = 0,
     busLeavingMaxLimit = 45;
 
-  public static final int[] TIMER_VALUES = {30,35,40,45,50,55};
-  public static final int[] WIDGET_UPDATE_HOUR_INTERVALS = {1,2,3,4,5,6,7,8,12,24};
+  public static final int[]
+		TIMER_VALUES = {30,35,40,45,50,55},
+		WIDGET_UPDATE_HOUR_INTERVALS = {15, 30, 1*60, 2*60, 3*60, 4*60, 5*60, 6*60, 7*60, 8*60, 12*60, 24*60};
 
 	public static final String
 		ORAR_SAMBATA="_s",
@@ -176,21 +178,30 @@ public class GeneralHelper {
     return null;
   }
 
-  public static String[] getTimerPickerDisplayedValues(){
+  public static String[] getTimerPickerDisplayedValues(Context context){
     int length = TIMER_VALUES.length;
     String[] result = new String[length];
+		String unit = context.getString(R.string.picker_minutes);
     for (int i = 0; i < length; i++) {
-      result[i] = String.valueOf(TIMER_VALUES[i]) + " min";
+      result[i] = String.valueOf(TIMER_VALUES[i]) + unit;
     }
     return result;
   }
 
-  public static String[] getWidgetPickerDisplayedValues(){
+  public static String[] getWidgetPickerDisplayedValues(Context context){
     int length = WIDGET_UPDATE_HOUR_INTERVALS.length;
     String[] result = new String[length];
+		int value;
     for (int i = 0; i < length; i++) {
-      result[i] = String.valueOf(WIDGET_UPDATE_HOUR_INTERVALS[i]) + " hours";
-    }
+			value = WIDGET_UPDATE_HOUR_INTERVALS[i];
+			if (value == 60) {
+				result[i] = value/60 + context.getString(R.string.picker_hour);
+			} else if (value > 60){
+				result[i] = value/60 + context.getString(R.string.picker_hours);
+			} else {
+				result[i] = value + context.getString(R.string.picker_minutes);
+			}
+		}
     return result;
   }
 
@@ -199,6 +210,6 @@ public class GeneralHelper {
   }
 
   public static int getMillisForWidgetDisplayedValue(int widgetPickerValue){
-    return WIDGET_UPDATE_HOUR_INTERVALS[widgetPickerValue]*60*60*1000;
+    return WIDGET_UPDATE_HOUR_INTERVALS[widgetPickerValue]*60*1000;
   }
 }

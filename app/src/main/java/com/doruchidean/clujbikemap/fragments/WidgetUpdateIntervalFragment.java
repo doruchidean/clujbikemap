@@ -32,7 +32,7 @@ public class WidgetUpdateIntervalFragment extends Fragment {
 		picker.setMinValue(0);
 		picker.setMaxValue(GeneralHelper.WIDGET_UPDATE_HOUR_INTERVALS.length-1);
 		picker.setValue(PersistenceManager.getValueIndexForWidgetUpdateInterval(getContext()));
-		picker.setDisplayedValues(GeneralHelper.getWidgetPickerDisplayedValues());
+		picker.setDisplayedValues(GeneralHelper.getWidgetPickerDisplayedValues(getContext()));
 		picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
 			@Override
 			public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
@@ -62,6 +62,6 @@ public class WidgetUpdateIntervalFragment extends Fragment {
 			pendingIntent
 		);
 
-		Log.d("traces", "alarmManager created: " + intervalMillis/60000);
+		Log.d("traces", "widget set to update every: " + intervalMillis/60000);
 	}
 }
