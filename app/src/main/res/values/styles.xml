@@ -9,6 +9,7 @@
     <item name="colorControlNormal">@color/color_actionbar_icon</item>
     <item name="colorButtonNormal">@color/color_primary</item>
     <item name="android:textColorPrimary">@color/color_text_main</item>
+    <item name="android:windowBackground">@color/color_primary</item>
   </style>
 
   <style name="AppTheme.ProgressDialog" parent="AppTheme">

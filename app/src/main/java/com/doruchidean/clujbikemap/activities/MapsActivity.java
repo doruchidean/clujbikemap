@@ -136,7 +136,7 @@ public class MapsActivity extends AppCompatActivity
 		drawerBtnStatus,
 		drawerBtnWidgetUpdate;
 	private LinearLayout llTimesLeft, llTimesRight;
-	private LinearLayout mBusBar;
+	private LinearLayout busBar;
 	private GoogleMapsInfoWindowAdapter mMapInfoWindowsAdapter;
 	private CountDownTimer mCountDownTimer;
 	private ActionBarDrawerToggle drawerToggle;
@@ -153,40 +153,11 @@ public class MapsActivity extends AppCompatActivity
 
 		setContentView(R.layout.activity_maps);
 
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
+		setUpDrawer(initializeToolbar());
 
-		ActionBar actionBar = getSupportActionBar();
-		if (actionBar != null) {
-			actionBar.setHomeButtonEnabled(true);
-			actionBar.setDisplayShowHomeEnabled(true);
-		}
+		initializeViews();
 
-		setUpDrawer(toolbar);
-
-		btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
-		btnTimer = (TextView) findViewById(R.id.btn_timer);
-		tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
-		tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
-		tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
-		llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
-		llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
-
-		boolean showBusBar = PersistenceManager.getShowBusBar(this);
-		mBusBar = (LinearLayout) findViewById(R.id.bus_bar);
-		assert mBusBar != null;
-		mBusBar.setVisibility(showBusBar ? View.VISIBLE : View.GONE);
-		drawerBtnShowBusBar.setChecked(showBusBar);
-
-		DatabaseHandler databaseHandler = DatabaseHandler.getInstance(this);
-		if (databaseHandler.hasBusScheduleForToday(PersistenceManager.getBusNumber(this)) && showBusBar) {
-			if (databaseHandler.isFresh(PersistenceManager.getBusTableUpdatedDay(this))) {
-				updateBusBarUI();
-			} else {
-				trace("in OnCreate MapsActivity: refreshing database");
-				ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, PersistenceManager.getBusNumber(this));
-			}
-		}
+		initializeDatabase();
 
 		mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
 
@@ -196,6 +167,50 @@ public class MapsActivity extends AppCompatActivity
 
 		Fabric.with(this, new Crashlytics());
 
+	}
+
+	private void initializeDatabase(){
+		DatabaseHandler databaseHandler = DatabaseHandler.getInstance(this);
+		if (databaseHandler.hasBusScheduleForToday(
+			PersistenceManager.getBusNumber(this))
+			&& PersistenceManager.getShowBusBar(this)) {
+
+			if (databaseHandler.isFresh(PersistenceManager.getBusTableUpdatedDay(this))) {
+				updateBusBarUI();
+			} else {
+				trace("in OnCreate MapsActivity: refreshing database");
+				ApiClient.getInstance()
+					.getBusSchedule(getBusScheduleCallback, PersistenceManager.getBusNumber(this));
+			}
+		}
+	}
+
+	private Toolbar initializeToolbar(){
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		setSupportActionBar(toolbar);
+
+		ActionBar actionBar = getSupportActionBar();
+		if (actionBar != null) {
+			actionBar.setHomeButtonEnabled(true);
+			actionBar.setDisplayShowHomeEnabled(true);
+		}
+
+		return toolbar;
+	}
+
+	private void initializeViews(){
+		btnShowFavourites = (ImageButton) findViewById(R.id.btn_show_favourites);
+		btnTimer = (TextView) findViewById(R.id.btn_timer);
+		tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
+		tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
+		tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
+		llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
+		llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
+		busBar = (LinearLayout) findViewById(R.id.bus_bar);
+
+		boolean showBusBar = PersistenceManager.getShowBusBar(this);
+		busBar.setVisibility(showBusBar ? View.VISIBLE : View.GONE);
+		drawerBtnShowBusBar.setChecked(showBusBar);
 	}
 
 	@Override protected void onPostCreate(@Nullable Bundle savedInstanceState) {
@@ -783,7 +798,7 @@ public class MapsActivity extends AppCompatActivity
 	private CompoundButton.OnCheckedChangeListener onShowBusBarChanged = new CompoundButton.OnCheckedChangeListener() {
 		@Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 			PersistenceManager.setShowBusBar(MapsActivity.this, isChecked);
-			mBusBar.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+			busBar.setVisibility(isChecked ? View.VISIBLE : View.GONE);
 		}
 	};
 
