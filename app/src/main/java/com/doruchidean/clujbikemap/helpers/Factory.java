@@ -61,15 +61,19 @@ public class Factory {
         bikeStation.maximumNumberOfBikes = j.getInt("MaximumNumberOfBikes");
         bikeStation.stationStatus = j.getString("Status");
 
-				if(bikeStation.stationName.equalsIgnoreCase("horea - gara")
+				if (bikeStation.stationName.equalsIgnoreCase("horea - gara")
 					|| bikeStation.stationName.equalsIgnoreCase("fabricii")){
 
 					bikeStation.emptySpots -= 10;
 				}
 
-        stationsArray.add(bikeStation);
+				if (!(bikeStation.stationName.equalsIgnoreCase("emil isac")
+					|| bikeStation.stationName.equalsIgnoreCase("statie training 6")
+					|| bikeStation.stationName.equalsIgnoreCase("statie virtuala"))) {
+					stationsArray.add(bikeStation);
+				}
 
-      }
+			}
 
     } catch (JSONException e) {
       e.printStackTrace();
