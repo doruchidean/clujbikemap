@@ -1,6 +1,6 @@
 package com.doruchidean.clujbikemap.helpers;
 
-import android.util.Log;
+import com.doruchidean.clujbikemap.activities.MapsActivity;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -31,7 +31,7 @@ public class ApiClient {
 	public void getStations(Callback callback){
 		String baseUrl = "http://84.232.185.103";
 		String getStations = "/Station/Read";
-		trace("get stations: " + baseUrl + getStations);
+		MapsActivity.trace("get stations: " + baseUrl + getStations);
 
 		Request request = new Request.Builder()
 			.url(baseUrl + getStations)
@@ -47,7 +47,7 @@ public class ApiClient {
 		String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
 		String url = GeneralHelper.resolveBusInUrl(busNumber, busUrl);
 
-		trace("getting bus " + busNumber + " at: " + url);
+		MapsActivity.trace("getting bus " + busNumber + " at: " + url);
 
 		Request request = new Request.Builder()
 			.url(url)
@@ -68,7 +68,7 @@ public class ApiClient {
 			.addQueryParameter("key", key)
 			.build();
 
-		trace("getDistance:  " + url.toString());
+		MapsActivity.trace("getDistance:  " + url.toString());
 
 		Request request = new Request.Builder()
 			.url(url)
@@ -77,8 +77,13 @@ public class ApiClient {
 		response.enqueue(callback);
 	}
 
-	private void trace(String s){
-		Log.d("traces", s);
+	public void getAdDetails(Callback callback){
+		Request request = new Request.Builder()
+			.url("https://clujbikemap.firebaseio.com/.json")
+			.build();
+
+		Call response = client.newCall(request);
+		response.enqueue(callback);
 	}
 
 }

@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -41,6 +42,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RemoteViews;
@@ -80,6 +82,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -142,6 +145,7 @@ public class MapsActivity extends AppCompatActivity
 	private ActionBarDrawerToggle drawerToggle;
 	private ToggleButton drawerBtnShowBusBar;
 	private Tracker analyticsTracker;
+	private ImageView adContainer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -208,9 +212,47 @@ public class MapsActivity extends AppCompatActivity
 		llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
 		busBar = (LinearLayout) findViewById(R.id.bus_bar);
 
+		adContainer = (ImageView) findViewById(R.id.ad_container);
+		ApiClient.getInstance().getAdDetails(adDetailsCallback);
+
 		boolean showBusBar = PersistenceManager.getShowBusBar(this);
 		busBar.setVisibility(showBusBar ? View.VISIBLE : View.GONE);
 		drawerBtnShowBusBar.setChecked(showBusBar);
+	}
+
+	private Callback adDetailsCallback = new Callback() {
+		@Override public void onFailure(Call call, IOException e) {
+			Log.e("traces", e.getMessage());
+		}
+
+		@Override public void onResponse(Call call, Response response) throws IOException {
+			try {
+				JSONObject jsonResponse = new JSONObject(response.body().string());
+				if(jsonResponse.getBoolean("is_visible")){
+
+					final String imageUrl = jsonResponse.getString("ad_image");
+					final String webpageUrl = jsonResponse.getString("ad_webpage");
+					MapsActivity.this.runOnUiThread(new Runnable() {
+						@Override public void run() {
+							setUpAd(imageUrl, webpageUrl);
+						}
+					});
+				}
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+
+	private void setUpAd(String imageUrl, final String webPageUrl){
+		adContainer.setVisibility(View.VISIBLE);
+		Picasso.with(MapsActivity.this).load(imageUrl).into(adContainer);
+		adContainer.setOnClickListener(new View.OnClickListener() {
+			@Override public void onClick(View v) {
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(webPageUrl));
+				startActivity(intent);
+			}
+		});
 	}
 
 	@Override protected void onPostCreate(@Nullable Bundle savedInstanceState) {
