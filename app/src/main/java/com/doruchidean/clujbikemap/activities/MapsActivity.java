@@ -48,6 +48,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.crashlytics.android.Crashlytics;
 import com.doruchidean.clujbikemap.DefaultApplication;
 import com.doruchidean.clujbikemap.adapters.GoogleMapsInfoWindowAdapter;
 import com.doruchidean.clujbikemap.database.DatabaseHandler;
@@ -90,6 +91,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import io.fabric.sdk.android.Fabric;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -191,6 +193,8 @@ public class MapsActivity extends AppCompatActivity
 		buildGoogleApiClient();
 
 		analyticsTracker = ((DefaultApplication) getApplication()).getDefaultAnalyticsTracker();
+
+		Fabric.with(this, new Crashlytics());
 
 	}
 
