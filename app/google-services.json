@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "234869956660",
+    "project_id": "clujbike-map"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:234869956660:android:312c10b80251450b",
+        "android_client_info": {
+          "package_name": "com.doruchidean.clujbikemap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7BJBckkxuaQzyWsjsN32rHZp8qKZxOPw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-68026285-2"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

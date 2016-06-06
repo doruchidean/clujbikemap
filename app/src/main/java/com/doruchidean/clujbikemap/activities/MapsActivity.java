@@ -48,6 +48,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.doruchidean.clujbikemap.DefaultApplication;
 import com.doruchidean.clujbikemap.adapters.GoogleMapsInfoWindowAdapter;
 import com.doruchidean.clujbikemap.database.DatabaseHandler;
 import com.doruchidean.clujbikemap.fragments.ContactFragment;
@@ -64,6 +65,8 @@ import com.doruchidean.clujbikemap.helpers.NotificationHandler;
 import com.doruchidean.clujbikemap.helpers.PersistenceManager;
 import com.doruchidean.clujbikemap.R;
 import com.doruchidean.clujbikemap.models.BikeStation;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -136,6 +139,7 @@ public class MapsActivity extends AppCompatActivity
 	private CountDownTimer mCountDownTimer;
 	private ActionBarDrawerToggle drawerToggle;
 	private ToggleButton drawerBtnShowBusBar;
+	private Tracker analyticsTracker;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -185,6 +189,9 @@ public class MapsActivity extends AppCompatActivity
 		mMapInfoWindowsAdapter = new GoogleMapsInfoWindowAdapter(MapsActivity.this, mStationsArray);
 
 		buildGoogleApiClient();
+
+		analyticsTracker = ((DefaultApplication) getApplication()).getDefaultAnalyticsTracker();
+
 	}
 
 	@Override protected void onPostCreate(@Nullable Bundle savedInstanceState) {
@@ -197,6 +204,9 @@ public class MapsActivity extends AppCompatActivity
 		super.onResume();
 		refreshPage();
 		mGoogleApiClient.connect();
+
+		analyticsTracker.setScreenName("Main Screen");
+		analyticsTracker.send(new HitBuilders.ScreenViewBuilder().build());
 	}
 
 	@Override protected void onPause() {
