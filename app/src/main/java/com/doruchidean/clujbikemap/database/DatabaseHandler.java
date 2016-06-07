@@ -251,13 +251,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			if (csvPlecariCapat2 != null) {
 				Collections.addAll(plecariCapat2, csvPlecariCapat2.split(", "));
 			}
-
-			result.put(Factory.NUME_CAPETE, numeCapete);
-			result.put(Factory.PLECARI_CAPAT_1, plecariCapat1);
-			result.put(Factory.PLECARI_CAPAT_2, plecariCapat2);
 		}
 
 		c.close();
+
+		result.put(Factory.NUME_CAPETE, numeCapete);
+		result.put(Factory.PLECARI_CAPAT_1, plecariCapat1);
+		result.put(Factory.PLECARI_CAPAT_2, plecariCapat2);
 
 		return result;
 	}
