@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="@dimen/bus_drawer_height"
+  android:background="@color/color_primary"
+  android:padding="@dimen/activity_horizontal_margin"
+  android:orientation="horizontal"
+  android:visibility="visible"
+  android:layout_gravity="bottom|end"
+  >
+  <TextView
+    android:id="@+id/btn_select_bus"
+    android:onClick="onClick"
+    android:clickable="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/ic_bus"
+    android:paddingBottom="4dp"
+    android:gravity="center"
+    android:text="@string/bus_bar_add_btn_label"
+    android:textColor="@color/white"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+    />
+
+  <LinearLayout
+    android:id="@+id/btn_full_bus_schedule"
+    android:onClick="onClick"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="1"
+    >
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:orientation="vertical"
+      android:layout_weight=".5"
+      >
+
+      <TextView
+        android:id="@+id/tv_bus_capat1"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/color_bus_bar_text"
+        android:singleLine="true"
+        android:text="@string/bus_bar_capat1_info_label"
+        />
+
+      <LinearLayout
+        android:id="@+id/ll_times_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="4dp"
+        android:paddingStart="4dp"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"
+        android:orientation="horizontal"
+        />
+
+      <TextView
+        android:id="@+id/tv_plecari_capat_1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:ellipsize="end"
+        />
+
+    </LinearLayout>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight=".5"
+      android:orientation="vertical"
+      >
+
+      <TextView
+        android:id="@+id/tv_bus_capat2"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/color_bus_bar_text"
+        android:singleLine="true"
+        android:text="@string/bus_bar_capat2_info_label"
+        />
+
+      <LinearLayout
+        android:id="@+id/ll_times_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="4dp"
+        android:paddingStart="4dp"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"
+        android:orientation="horizontal"
+        />
+
+      <TextView
+        android:id="@+id/tv_plecari_capat_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:ellipsize="end"
+        />
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+
+</LinearLayout>

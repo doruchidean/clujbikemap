@@ -38,9 +38,7 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,9 +46,9 @@ import android.widget.ListView;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.crashlytics.android.Crashlytics;
+import com.doruchidean.clujbikemap.BuildConfig;
 import com.doruchidean.clujbikemap.DefaultApplication;
 import com.doruchidean.clujbikemap.adapters.GoogleMapsInfoWindowAdapter;
 import com.doruchidean.clujbikemap.database.DatabaseHandler;
@@ -137,13 +135,11 @@ public class MapsActivity extends AppCompatActivity
 		drawerBtnContact,
 		drawerBtnTimer,
 		drawerBtnStatus,
-		drawerBtnWidgetUpdate;
+		drawerBtnWidgetUpdate, tvPlecariCapat1, tvPlecariCapat2;
 	private LinearLayout llTimesLeft, llTimesRight;
-	private LinearLayout busBar;
 	private GoogleMapsInfoWindowAdapter mMapInfoWindowsAdapter;
 	private CountDownTimer mCountDownTimer;
 	private ActionBarDrawerToggle drawerToggle;
-	private ToggleButton drawerBtnShowBusBar;
 	private Tracker analyticsTracker;
 	private ImageView adContainer;
 
@@ -169,22 +165,27 @@ public class MapsActivity extends AppCompatActivity
 
 		analyticsTracker = ((DefaultApplication) getApplication()).getDefaultAnalyticsTracker();
 
-		Fabric.with(this, new Crashlytics());
+		if (!BuildConfig.DEBUG) {
+			Fabric.with(this, new Crashlytics());
+		}
 
 	}
 
 	private void initializeDatabase(){
 		DatabaseHandler databaseHandler = DatabaseHandler.getInstance(this);
-		if (databaseHandler.hasBusScheduleForToday(
-			PersistenceManager.getBusNumber(this))
-			&& PersistenceManager.getShowBusBar(this)) {
-
-			if (databaseHandler.isFresh(PersistenceManager.getBusTableUpdatedDay(this))) {
+		if (databaseHandler.hasBusScheduleForToday(PersistenceManager.getBusNumber(this))) {
+			if (databaseHandler.isActualized(PersistenceManager.getBusTableUpdatedDay(this))) {
 				updateBusBarUI();
 			} else {
-				trace("in OnCreate MapsActivity: refreshing database");
+				trace("");
 				ApiClient.getInstance()
 					.getBusSchedule(getBusScheduleCallback, PersistenceManager.getBusNumber(this));
+			}
+		}else{
+			String busNumber = PersistenceManager.getBusNumber(this);
+			if(busNumber.length() > 0) {
+				ApiClient.getInstance()
+					.getBusSchedule(getBusScheduleCallback, busNumber);
 			}
 		}
 	}
@@ -208,16 +209,13 @@ public class MapsActivity extends AppCompatActivity
 		tvBusCapat1 = (TextView) findViewById(R.id.tv_bus_capat1);
 		tvBusCapat2 = (TextView) findViewById(R.id.tv_bus_capat2);
 		tvSelectedBus = (TextView) findViewById(R.id.btn_select_bus);
+		tvPlecariCapat1 = (TextView) findViewById(R.id.tv_plecari_capat_1);
+		tvPlecariCapat2 = (TextView) findViewById(R.id.tv_plecari_capat_2);
 		llTimesLeft = (LinearLayout) findViewById(R.id.ll_times_left);
 		llTimesRight = (LinearLayout) findViewById(R.id.ll_times_right);
-		busBar = (LinearLayout) findViewById(R.id.bus_bar);
-
 		adContainer = (ImageView) findViewById(R.id.ad_container);
 		ApiClient.getInstance().getAdDetails(adDetailsCallback);
 
-		boolean showBusBar = PersistenceManager.getShowBusBar(this);
-		busBar.setVisibility(showBusBar ? View.VISIBLE : View.GONE);
-		drawerBtnShowBusBar.setChecked(showBusBar);
 	}
 
 	private Callback adDetailsCallback = new Callback() {
@@ -278,7 +276,23 @@ public class MapsActivity extends AppCompatActivity
 	private void setUpDrawer(Toolbar toolbar){
 		DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		drawerToggle = new ActionBarDrawerToggle(
-			this, drawerLayout, toolbar, R.string.open_drawer_content_desc, R.string.close_drawer_content_desc);
+			this, drawerLayout, toolbar, R.string.open_drawer_content_desc, R.string.close_drawer_content_desc){
+
+			@Override public void onDrawerOpened(View drawerView) {
+				super.onDrawerOpened(drawerView);
+				switch (drawerView.getId()){
+					case R.id.bus_bar_layout:
+						if(PersistenceManager.getBusNumber(MapsActivity.this).length() > 0) {
+							updateBusBarUI();
+						}
+						break;
+					case R.id.drawer_menu:
+						analyticsTracker.send(new HitBuilders.EventBuilder()
+							.setCategory("Vizualizare")
+							.setAction("Vizualizare Meniu").build());
+				}
+			}
+		};
 		drawerToggle.setDrawerIndicatorEnabled(true);
 		assert drawerLayout != null;
 		drawerLayout.addDrawerListener(drawerToggle); //further testing: assert
@@ -288,8 +302,6 @@ public class MapsActivity extends AppCompatActivity
 		drawerBtnStatus = (TextView) drawerLayout.findViewById(R.id.drawer_btn_overall_stats);
 		drawerBtnTimer = (TextView) drawerLayout.findViewById(R.id.drawer_btn_timer_limit);
 		drawerBtnWidgetUpdate = (TextView) drawerLayout.findViewById(R.id.drawer_btn_widget_refresh_interval);
-		drawerBtnShowBusBar = (ToggleButton) drawerLayout.findViewById(R.id.show_bus_bar);
-		drawerBtnShowBusBar.setOnCheckedChangeListener(onShowBusBarChanged);
 
 		getSupportFragmentManager()
 			.beginTransaction()
@@ -354,7 +366,6 @@ public class MapsActivity extends AppCompatActivity
 							return;
 						}
 						GeneralHelper.updateDatabase(MapsActivity.this, bytes);
-
 						updateBusBarUI();
 					}
 				}
@@ -427,6 +438,8 @@ public class MapsActivity extends AppCompatActivity
 	private void setTextsInBusBar(ArrayList<String> minutesRemaining, LinearLayout parent){
 
 		parent.removeAllViews();
+		tvPlecariCapat1.setText("");
+		tvPlecariCapat2.setText("");
 
 		TextView tvSubtitle = new TextView(MapsActivity.this);
 		tvSubtitle.setSingleLine();
@@ -515,6 +528,18 @@ public class MapsActivity extends AppCompatActivity
 			tvMinutesGreen.setText(textMinutesGreen);
 			parent.addView(tvMinutesGreen);
 		}
+
+		String plecari1="";
+		for(String s : GeneralHelper.getPlecariInInterval(plecariCapat1)){
+			plecari1 += s+"| ";
+		}
+		tvPlecariCapat1.setText(plecari1);
+		String plecari2="";
+		for(String s : GeneralHelper.getPlecariInInterval(plecariCapat2)){
+			plecari2 += s+"| ";
+		}
+		tvPlecariCapat2.setText(plecari2);
+
 	}
 
 	private void refreshUIButtons() {
@@ -837,13 +862,6 @@ public class MapsActivity extends AppCompatActivity
 		return super.onOptionsItemSelected(item);
 	}
 
-	private CompoundButton.OnCheckedChangeListener onShowBusBarChanged = new CompoundButton.OnCheckedChangeListener() {
-		@Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			PersistenceManager.setShowBusBar(MapsActivity.this, isChecked);
-			busBar.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-		}
-	};
-
 	@Override
 	public void onConnectionSuspended(int i) {
 
@@ -970,7 +988,6 @@ public class MapsActivity extends AppCompatActivity
 							public void onClick(DialogInterface dialog, int which) {
 								if(DatabaseHandler.getInstance(MapsActivity.this)
 									.hasBusScheduleForToday(PersistenceManager.getBusNumber(MapsActivity.this))){
-
 									updateBusBarUI();
 								}else{
 									ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, PersistenceManager.getBusNumber(MapsActivity.this));
@@ -986,42 +1003,6 @@ public class MapsActivity extends AppCompatActivity
 						.create();
 				dialog = builder.create();
 				dialog.show();
-				break;
-			case(R.id.btn_full_bus_schedule):
-
-				if(PersistenceManager.getBusName(this).length() == 0) break;
-
-				View busTimesContainer = View.inflate(MapsActivity.this, R.layout.dialog_bus_times, null);
-				TextView tvCapat1 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_title_1);
-				TextView tvPlecari1 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_1);
-				TextView tvCapat2 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_title_2);
-				TextView tvPlecari2 = (TextView) busTimesContainer.findViewById(R.id.tv_bus_times_2);
-
-				tvCapat1.setText(capat1Title);
-				tvCapat2.setText(capat2Title);
-				String plecari1="";
-				for(String s : plecariCapat1){
-					plecari1 += s+"| ";
-				}
-				tvPlecari1.setText(plecari1);
-				String plecari2="";
-				for(String s : plecariCapat2){
-					plecari2 += s+"| ";
-				}
-				tvPlecari2.setText(plecari2);
-
-				AlertDialog dialog1 = new AlertDialog.Builder(MapsActivity.this, R.style.MyDialogTheme)
-					.setTitle(getString(R.string.dialog_orar_complet) + " " + PersistenceManager.getBusNumber(this))
-					.setView(busTimesContainer)
-					.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							dialog.dismiss();
-						}
-					})
-					.create();
-				dialog1.show();
-				dialog1.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
 				break;
 			case R.id.drawer_btn_margins:
 				HotColdMarginsFragment marginsFragment = HotColdMarginsFragment.newInstance(this);

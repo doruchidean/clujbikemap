@@ -88,7 +88,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		return result;
 	}
 
-	public boolean isFresh(int busTableCreatedDay){
+	public boolean isActualized(int busTableCreatedDay){
 		boolean result;
 		result = (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) - busTableCreatedDay) < BUS_TABLE_REFRESH_INTERVAL;
 
@@ -136,21 +136,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		if(hasBusNumber(busNumber)){
 			//trace
-			Cursor c = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER, new String[]{busNumber}, null, null, null);
-			String trace = c.getString(c.getColumnIndex(COLUMN_ORAR_LV_CAPAT_1));
+			Cursor c = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}, null, null, null);
 			c.close();
-			MapsActivity.trace("column lv inainte : "  + trace);
 
 			getWritableDatabase().update(
 				BUS_TABLE_NAME,
 				rowValues,
-				COLUMN_BUS_NUMBER, new String[]{busNumber}
+				COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}
 			);
 
-			Cursor c1 = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER, new String[]{busNumber}, null, null, null);
-			String trace1 = c1.getString(c1.getColumnIndex(COLUMN_ORAR_LV_CAPAT_1));
+			Cursor c1 = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}, null, null, null);
 			c1.close();
-			MapsActivity.trace("column lv dupa: " + trace1);
 
 		}else{
 			getWritableDatabase().insert(BUS_TABLE_NAME, null, rowValues);
@@ -173,6 +169,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	}
 
 	public boolean hasBusScheduleForToday(String busNumber){
+		if (busNumber.length() == 0) return false;
+
 		boolean result;
 		String[] columnsForToday = new String[2];
 		switch (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)){

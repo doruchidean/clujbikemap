@@ -9,6 +9,7 @@
   <dimen name="drawer_width">300dp</dimen>
   <dimen name="drawer_on_off_button_width">88dp</dimen>
   <dimen name="drawer_picker_width">80dp</dimen>
+  <dimen name="bus_drawer_height">400dp</dimen>
   <!--drawer_on_off_button - 8 (button paddings)-->
 
 </resources>

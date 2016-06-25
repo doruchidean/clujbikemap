@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 
 import okhttp3.Response;
 
@@ -153,6 +154,23 @@ public class GeneralHelper {
 
     return result;
   }
+
+	public static List<String> getPlecariInInterval(ArrayList<String> plecariTotale){
+		List<String> result = new ArrayList<>();
+		int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+		String[] plecare;
+		for (String s : plecariTotale){
+			plecare = s.split(":");
+			if(plecare.length > 0){
+				int oraPlecare = Integer.parseInt(plecare[0]);
+				if( oraPlecare >= currentHour){
+					result.add(s);
+				}
+			}
+		}
+
+		return result;
+	}
 
   public static String isBusTimeInNextHour(boolean inMinutes, String plecare, int currentHour, int currentMinute){
 

@@ -25,7 +25,6 @@ public class PersistenceManager {
 		BUS_NAME ="buses",
 		WIDGET_ID="widgetid",
 		WIDGET_UPDATE_INTERVAL="widgetupdateinterval",
-		SHOW_BUS_BAR="showbusbar",
 		OVERALL_BIKES="overall.bikes",
 		OVERALL_EMPTY_SPOTS="overall.empty",
 		OVERALL_MAX_NR="overall.max.nr",
@@ -198,18 +197,6 @@ public class PersistenceManager {
 	public static int getValueIndexForWidgetUpdateInterval(Context context) {
 		return PreferenceManager.getDefaultSharedPreferences(context)
 			.getInt(WIDGET_UPDATE_INTERVAL, 3);
-	}
-
-	public static boolean getShowBusBar(Context context) {
-		return PreferenceManager.getDefaultSharedPreferences(context)
-			.getBoolean(SHOW_BUS_BAR, false);
-	}
-
-	public static void setShowBusBar(Context context, boolean showBusBar) {
-		PreferenceManager.getDefaultSharedPreferences(context)
-			.edit()
-			.putBoolean(SHOW_BUS_BAR, showBusBar)
-			.apply();
 	}
 
 	public static void setBusTableUpdatedDay(Context context, int busTableCreatedDay) {
