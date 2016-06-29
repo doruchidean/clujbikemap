@@ -45,7 +45,7 @@ public class ApiClient {
 	public void getBusSchedule(Callback callback, String busNumber){
 
 		String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
-		String url = GeneralHelper.resolveBusInUrl(busNumber, busUrl);
+		String url = GeneralHelper.resolveDayOfWeekInUrl(busNumber, busUrl);
 
 		MapsActivity.trace("getting bus " + busNumber + " at: " + url);
 

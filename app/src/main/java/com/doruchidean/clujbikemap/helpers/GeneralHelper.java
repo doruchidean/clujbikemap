@@ -96,7 +96,7 @@ public class GeneralHelper {
     return Math.round(dpNeeded * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
   }
 
-  public static String resolveBusInUrl(String busNumber, String url){
+  public static String resolveDayOfWeekInUrl(String busNumber, String url){
     Calendar calendar = Calendar.getInstance();
 
     switch (calendar.get(Calendar.DAY_OF_WEEK)){

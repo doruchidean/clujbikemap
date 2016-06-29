@@ -80,41 +80,41 @@ public class WidgetProvider extends AppWidgetProvider {
 
   public void updateTexts(Context context, String busNumber) {
 
-		HashMap<String, ArrayList<String>> leavingTimes = DatabaseHandler.getInstance(context).getBusScheduleForToday(busNumber);
-
-		if(busNumber.length() == 0 || leavingTimes.get(Factory.NUME_CAPETE).size() == 0) return;
-
-		ArrayList<String> plecariCapat1 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_1));
-		ArrayList<String> plecariCapat2 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_2));
-
-		String numeCapat1 = leavingTimes.get(Factory.NUME_CAPETE).get(0);
-		String numeCapat2 = leavingTimes.get(Factory.NUME_CAPETE).get(1);
-
-		mRemoteViews.setTextViewText(R.id.tv_widget_bus, busNumber);
-		if (plecariCapat1.size() == 0) {
-			mRemoteViews.setTextViewText(
-				R.id.tv_widget_times_capat_1,
-				String.format(context.getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
-		}else{
-			String textToBeDisplayed = "";
-			for(String s : plecariCapat1){
-				textToBeDisplayed += s + " | ";
-			}
-			mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_1, textToBeDisplayed);
-		}
-		if(plecariCapat2.size() == 0){
-			mRemoteViews.setTextViewText(
-				R.id.tv_widget_times_capat_2,
-				String.format(context.getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
-		}else{
-			String textToBeDisplayed = "";
-			for(String s : plecariCapat2){
-				textToBeDisplayed += s + " | ";
-			}
-			mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_2, textToBeDisplayed);
-		}
-		mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, numeCapat1);
-    mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, numeCapat2);
+//		HashMap<String, ArrayList<String>> leavingTimes = DatabaseHandler.getInstance(context).getBusScheduleForToday(busNumber);
+//
+//		if(busNumber.length() == 0 || leavingTimes.get(Factory.NUME_CAPETE).size() == 0) return;
+//
+//		ArrayList<String> plecariCapat1 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_1));
+//		ArrayList<String> plecariCapat2 = GeneralHelper.getDeparturesInNextHour(false, leavingTimes.get(Factory.PLECARI_CAPAT_2));
+//
+//		String numeCapat1 = leavingTimes.get(Factory.NUME_CAPETE).get(0);
+//		String numeCapat2 = leavingTimes.get(Factory.NUME_CAPETE).get(1);
+//
+//		mRemoteViews.setTextViewText(R.id.tv_widget_bus, busNumber);
+//		if (plecariCapat1.size() == 0) {
+//			mRemoteViews.setTextViewText(
+//				R.id.tv_widget_times_capat_1,
+//				String.format(context.getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
+//		}else{
+//			String textToBeDisplayed = "";
+//			for(String s : plecariCapat1){
+//				textToBeDisplayed += s + " | ";
+//			}
+//			mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_1, textToBeDisplayed);
+//		}
+//		if(plecariCapat2.size() == 0){
+//			mRemoteViews.setTextViewText(
+//				R.id.tv_widget_times_capat_2,
+//				String.format(context.getString(R.string.bus_departing_over_limit), GeneralHelper.busLeavingMaxLimit));
+//		}else{
+//			String textToBeDisplayed = "";
+//			for(String s : plecariCapat2){
+//				textToBeDisplayed += s + " | ";
+//			}
+//			mRemoteViews.setTextViewText(R.id.tv_widget_times_capat_2, textToBeDisplayed);
+//		}
+//		mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_1, numeCapat1);
+//    mRemoteViews.setTextViewText(R.id.tv_widget_times_titlu_2, numeCapat2);
 
   }
 

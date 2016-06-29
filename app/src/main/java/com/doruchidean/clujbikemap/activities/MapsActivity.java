@@ -35,6 +35,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -65,6 +66,7 @@ import com.doruchidean.clujbikemap.helpers.GeneralHelper;
 import com.doruchidean.clujbikemap.helpers.NotificationHandler;
 import com.doruchidean.clujbikemap.helpers.PersistenceManager;
 import com.doruchidean.clujbikemap.R;
+import com.doruchidean.clujbikemap.helpers.loaders.GetBusScheduleForToday;
 import com.doruchidean.clujbikemap.models.BikeStation;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -113,13 +115,15 @@ public class MapsActivity extends AppCompatActivity
 		TAG_WIDGET_INTERVAL = "widget.interval";
 	public final static int
 		PERMISSION_SET_COORDINATES_OF_USER_LOCATION = 0,
-		PERMISSION_SETUP_MAP_IF_NEEDED = 1;
+		PERMISSION_SETUP_MAP_IF_NEEDED = 1,
+		GET_BUS_SCHEDULE_FOR_TODAY = 1;
 
 	private ArrayList<MarkerOptions> mapMarkers = new ArrayList<>();
 	private ArrayList<BikeStation> mStationsArray = new ArrayList<>();
 	private ArrayList<String> plecariCapat1 = new ArrayList<>();
 	private ArrayList<String> plecariCapat2 = new ArrayList<>();
 	private String capat1Title, capat2Title;
+	private HashMap<String, ArrayList<String>> leavingTimes;
 
 	private GoogleMap mMap;
 	private GoogleApiClient mGoogleApiClient;
@@ -177,7 +181,6 @@ public class MapsActivity extends AppCompatActivity
 			if (databaseHandler.isActualized(PersistenceManager.getBusTableUpdatedDay(this))) {
 				updateBusBarUI();
 			} else {
-				trace("");
 				ApiClient.getInstance()
 					.getBusSchedule(getBusScheduleCallback, PersistenceManager.getBusNumber(this));
 			}
@@ -228,11 +231,13 @@ public class MapsActivity extends AppCompatActivity
 				JSONObject jsonResponse = new JSONObject(response.body().string());
 				if(jsonResponse.getBoolean("is_visible")){
 
-					final String imageUrl = jsonResponse.getString("ad_image");
-					final String webpageUrl = jsonResponse.getString("ad_webpage");
+					final String bannerImageUrl = jsonResponse.getString("banner_image");
+					final String voucherImageUrl = jsonResponse.getString("voucher_image");
+					final String promoText = jsonResponse.getString("promo_text");
+
 					MapsActivity.this.runOnUiThread(new Runnable() {
 						@Override public void run() {
-							setUpAd(imageUrl, webpageUrl);
+							setUpAd(promoText, voucherImageUrl, bannerImageUrl);
 						}
 					});
 				}
@@ -242,13 +247,29 @@ public class MapsActivity extends AppCompatActivity
 		}
 	};
 
-	private void setUpAd(String imageUrl, final String webPageUrl){
+	private void setUpAd(final String promoText, final String voucherImageUrl, final String bannerImageUrl){
 		adContainer.setVisibility(View.VISIBLE);
-		Picasso.with(MapsActivity.this).load(imageUrl).into(adContainer);
+		Picasso
+			.with(MapsActivity.this)
+			.load(bannerImageUrl)
+			.into(adContainer);
+
 		adContainer.setOnClickListener(new View.OnClickListener() {
 			@Override public void onClick(View v) {
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(webPageUrl));
-				startActivity(intent);
+				View dialogView = LayoutInflater.from(MapsActivity.this).inflate(R.layout.dialog_ad_voucher, null);
+
+				TextView tvLabel = (TextView)dialogView.findViewById(R.id.tv_ad_voucher_text);
+				tvLabel.setText(promoText);
+
+				Picasso.with(MapsActivity.this)
+					.load(voucherImageUrl)
+					.into((ImageView)dialogView.findViewById(R.id.iv_ad_voucher));
+
+				new AlertDialog.Builder(MapsActivity.this)
+					.setView(dialogView)
+					.setCancelable(true)
+					.create()
+					.show();
 			}
 		});
 	}
@@ -266,6 +287,7 @@ public class MapsActivity extends AppCompatActivity
 
 		analyticsTracker.setScreenName("Main Screen");
 		analyticsTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
 	}
 
 	@Override protected void onPause() {
@@ -283,6 +305,7 @@ public class MapsActivity extends AppCompatActivity
 				switch (drawerView.getId()){
 					case R.id.bus_bar_layout:
 						if(PersistenceManager.getBusNumber(MapsActivity.this).length() > 0) {
+							trace("updateBusBar - onDrawerOpened");
 							updateBusBarUI();
 						}
 						break;
@@ -366,6 +389,7 @@ public class MapsActivity extends AppCompatActivity
 							return;
 						}
 						GeneralHelper.updateDatabase(MapsActivity.this, bytes);
+
 						updateBusBarUI();
 					}
 				}
@@ -417,11 +441,12 @@ public class MapsActivity extends AppCompatActivity
 	private void updateBusBarUI() {
 
 		String busNumber = PersistenceManager.getBusNumber(this);
+		leavingTimes = new GetBusScheduleForToday(this, busNumber).loadInBackground();
+
+		if(leavingTimes == null || leavingTimes.isEmpty()) return;
+
 
 		tvSelectedBus.setText(busNumber);
-
-		HashMap<String, ArrayList<String>> leavingTimes =
-			DatabaseHandler.getInstance(this).getBusScheduleForToday(busNumber);
 
 		plecariCapat1 = leavingTimes.get(Factory.PLECARI_CAPAT_1);
 		plecariCapat2 = leavingTimes.get(Factory.PLECARI_CAPAT_2);
@@ -988,6 +1013,7 @@ public class MapsActivity extends AppCompatActivity
 							public void onClick(DialogInterface dialog, int which) {
 								if(DatabaseHandler.getInstance(MapsActivity.this)
 									.hasBusScheduleForToday(PersistenceManager.getBusNumber(MapsActivity.this))){
+									trace("updateBusBar - on btnSelectBus");
 									updateBusBarUI();
 								}else{
 									ApiClient.getInstance().getBusSchedule(getBusScheduleCallback, PersistenceManager.getBusNumber(MapsActivity.this));
@@ -1155,6 +1181,8 @@ public class MapsActivity extends AppCompatActivity
 
 			trace("widget updated in onStop mapsActivity");
 		}
+
+
 
 		super.onStop();
 	}

@@ -1,5 +1,6 @@
 package com.doruchidean.clujbikemap.helpers;
 
+import com.doruchidean.clujbikemap.activities.MapsActivity;
 import com.doruchidean.clujbikemap.models.BikeStation;
 
 import org.json.JSONArray;
@@ -102,20 +103,22 @@ public class Factory {
           csvLine = csvLine + " ";
         }
 
-        String[] row = csvLine.split(",");
+				if(csvLine.contains(",")) {
+					String[] row = csvLine.split(",");
 
-        //row 0 reprezinta orele pt capatul 1 al linii
-        if(row[0].contains(":")) {
-          plecariCapatul1.add(row[0]);
-        }else if(row[0].contains("route_long_name")){  //if row has the route we show it in the bus bar
-          String[] capete = row[1].split(" - ");
-          numeCapete.add(capete[0]+":");
-          numeCapete.add(capete[1]+":");
-        }
-        //row 1 reprezinta orele pt capatul 2 al linii
-        if(row[1].contains(":")) {
-          plecariCapatul2.add(row[1]);
-        }
+					//row 0 reprezinta orele pt capatul 1 al linii
+					if (row[0].contains(":")) {
+						plecariCapatul1.add(row[0]);
+					} else if (row[0].contains("route_long_name")) {  //if row has the route we show it in the bus bar
+						String[] capete = row[1].split(" - ");
+						numeCapete.add(capete[0] + ":");
+						numeCapete.add(capete[1] + ":");
+					}
+					//row 1 reprezinta orele pt capatul 2 al linii
+					if (row[1].contains(":")) {
+						plecariCapatul2.add(row[1]);
+					}
+				}
       }
 
       resultList.put(NUME_CAPETE, numeCapete);
