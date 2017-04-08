@@ -3,7 +3,6 @@
   <string name="title_activity_maps">ClujBike Map</string>
   <string name="failure_getting_stations">There was a server error while getting the stations.(Server might be down)</string>
   <string name="dialog_open_settings">You need an internet connection</string>
-  <string name="toast_up_to_date">Up to date</string>
   <string name="contact_developer">App Developer: doru.chidean@gmail.com</string>
   <string name="developer_email">doru.chidean@gmail.com</string>
   <string name="contact_call_center">Call Center: 0371 784 172</string>

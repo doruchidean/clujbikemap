@@ -17,7 +17,6 @@ import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
@@ -87,11 +86,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,8 +96,6 @@ import io.fabric.sdk.android.Fabric;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
-
-import static com.doruchidean.clujbikemap.database.DatabaseHandler.DATABASE_NAME;
 
 public class MapsActivity extends AppCompatActivity
         implements
@@ -179,6 +172,18 @@ public class MapsActivity extends AppCompatActivity
             Fabric.with(this, new Crashlytics());
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions(new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        PERMISSION_SET_COORDINATES_OF_USER_LOCATION
+                );
+            }
+        }
+
     }
 
     private void initializeDatabase(){
@@ -246,7 +251,7 @@ public class MapsActivity extends AppCompatActivity
 
     private Callback adDetailsCallback = new Callback() {
         @Override public void onFailure(Call call, IOException e) {
-            Log.e("traces", e.getMessage());
+            e.printStackTrace();
         }
 
         @Override public void onResponse(Call call, Response response) throws IOException {
@@ -419,7 +424,6 @@ public class MapsActivity extends AppCompatActivity
     private void updateMarkersUI(JSONObject jsonResponse) {
         mStationsArray = Factory.getInstance().factorizeResponse(jsonResponse);
         Collections.sort(MapsActivity.this.mStationsArray);
-        Toast.makeText(MapsActivity.this, getString(R.string.toast_up_to_date), Toast.LENGTH_SHORT).show();
         mMapInfoWindowsAdapter.notifyDataSetChanged(mStationsArray);
         setUpMap();
 
@@ -639,21 +643,8 @@ public class MapsActivity extends AppCompatActivity
         return (result == ConnectionResult.SUCCESS);
     }
 
+    @SuppressWarnings({"MissingPermission"})
     private void setCoordinatesOfUserLocation() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(
-                    this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(
-                            this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-                requestPermissions(new String[]{
-                                Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                        PERMISSION_SET_COORDINATES_OF_USER_LOCATION
-                );
-                return;
-            }
-        }
         Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         if (lastLocation != null) {
@@ -662,7 +653,10 @@ public class MapsActivity extends AppCompatActivity
             userLongitude = lastLocation.getLongitude();
         }
 
-        if(mMap != null) mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
+        if(mMap != null) {
+            mMap.setMyLocationEnabled(true);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
+        }
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -687,20 +681,14 @@ public class MapsActivity extends AppCompatActivity
                             mMap = googleMap;
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                if (ActivityCompat.checkSelfPermission(
-                                        MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                                        ActivityCompat.checkSelfPermission(
-                                                MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                if (ActivityCompat.checkSelfPermission(MapsActivity.this,
+                                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
 
-                                    requestPermissions(new String[]{
-                                                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                                            PERMISSION_SETUP_MAP_IF_NEEDED
-                                    );
-                                    return;
+                                    mMap.setMyLocationEnabled(true);
+
                                 }
                             }
 
-                            mMap.setMyLocationEnabled(true);
                             mMap.setOnInfoWindowClickListener(MapsActivity.this);
                             mMap.setInfoWindowAdapter(mMapInfoWindowsAdapter);
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(userLatitude, userLongitude), 16));
@@ -716,18 +704,13 @@ public class MapsActivity extends AppCompatActivity
         switch (requestCode){
             case PERMISSION_SET_COORDINATES_OF_USER_LOCATION:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("Maps", "setCoordinates -> onRequestPermissionResult");
                     setCoordinatesOfUserLocation();
-                } else {
-                    //todo handle case of no permission granted
-                    Toast.makeText(MapsActivity.this, "No permission granted", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case PERMISSION_SETUP_MAP_IF_NEEDED:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     setUpMapIfNeeded();
-                } else {
-                    //todo handle case
-                    Toast.makeText(MapsActivity.this, "No permission granted", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
@@ -861,8 +844,11 @@ public class MapsActivity extends AppCompatActivity
             dialog.show();
         }
 
-        setCoordinatesOfUserLocation();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
 
+            setCoordinatesOfUserLocation();
+        }
     }
 
     @Override
@@ -880,6 +866,8 @@ public class MapsActivity extends AppCompatActivity
 
         switch (id) {
             case R.id.btn_refresh:
+                Toast.makeText(this, "Refreshing data ...", Toast.LENGTH_SHORT)
+                        .show();
                 refreshPage();
                 break;
         }
@@ -1142,31 +1130,5 @@ public class MapsActivity extends AppCompatActivity
         //update widget if any
         new WidgetHelper(this).doUpdate();
         super.onStop();
-    }
-
-    public void exportDatabase() {
-
-        try {
-            //Open your local db as the input stream
-            File dbFile = getDatabasePath(DATABASE_NAME);
-            FileInputStream fis = new FileInputStream(dbFile);
-
-            String outFileName = Environment.getExternalStorageDirectory()+"/"+DATABASE_NAME;
-            //Open the empty db as the output stream
-            OutputStream output = new FileOutputStream(outFileName);
-            //transfer bytes from the input file to the output file
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = fis.read(buffer))>0){
-                output.write(buffer, 0, length);
-            }
-            //Close the streams
-            output.flush();
-            output.close();
-            fis.close();
-
-        } catch (IOException e){
-            e.printStackTrace();
-        }
     }
 }
