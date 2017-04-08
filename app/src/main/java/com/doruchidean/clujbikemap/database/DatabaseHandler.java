@@ -1,19 +1,19 @@
 package com.doruchidean.clujbikemap.database;
 
-import android.content.AsyncTaskLoader;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.doruchidean.clujbikemap.helpers.Factory;
+import com.doruchidean.clujbikemap.models.BusSchedule;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Doru on 12/05/16.
@@ -21,242 +21,323 @@ import java.util.HashMap;
  */
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-	public static final int
-		DATABASE_VERSION = 1, //todo increment with each database update (update onUpgrade callback)
-		BUS_TABLE_REFRESH_INTERVAL = 10; //days
-	public static final String
-		DATABASE_NAME="clujbikemap.db",
-		BUS_TABLE_NAME="BusSchedules",
-		COLUMN_BUS_NUMBER="BusNumber",
-		COLUMN_BUS_CAPAT_1="Capat1",
-		COLUMN_BUS_CAPAT_2="Capat2",
-		COLUMN_ORAR_LV_CAPAT_1 ="OrarLVCapat1",
-		COLUMN_ORAR_LV_CAPAT_2 ="OrarLVCapat2",
-		COLUMN_ORAR_S_CAPAT1="OrarSCapat1",
-		COLUMN_ORAR_S_CAPAT2="OrarSCapat2",
-		COLUMN_ORAR_D_CAPAT1="OrarDCapat1",
-		COLUMN_ORAR_D_CAPAT2="OrarDCapat2";
+    private static final int
+            DATABASE_VERSION = 3,
+            BUS_TABLE_REFRESH_INTERVAL = 10; //days
+    public static final String
+            DATABASE_NAME="clujbikemap.db",
+            BUS_TABLE_NAME="BusSchedules",
+            COLUMN_BUS_NAME="BusName",
+            COLUMN_BUS_NUMBER="BusNumber",
+            COLUMN_BUS_CAPAT_1="Capat1",
+            COLUMN_BUS_CAPAT_2="Capat2",
+            COLUMN_ORAR_LV_CAPAT_1 ="OrarLVCapat1",
+            COLUMN_ORAR_LV_CAPAT_2 ="OrarLVCapat2",
+            COLUMN_ORAR_S_CAPAT1="OrarSCapat1",
+            COLUMN_ORAR_S_CAPAT2="OrarSCapat2",
+            COLUMN_ORAR_D_CAPAT1="OrarDCapat1",
+            COLUMN_ORAR_D_CAPAT2="OrarDCapat2";
 
-	private static DatabaseHandler mInstance;
+    private static DatabaseHandler mInstance;
 
-	public static DatabaseHandler getInstance(Context context){
-		if(mInstance == null){
-			mInstance = new DatabaseHandler(context);
-		}
-		return mInstance;
-	}
+    public static DatabaseHandler getInstance(Context context){
+        if(mInstance == null){
+            mInstance = new DatabaseHandler(context);
+        }
+        return mInstance;
+    }
 
-	private DatabaseHandler(Context context) {
-		super(context, DATABASE_NAME, null, DATABASE_VERSION);
-	}
+    private DatabaseHandler(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
 
-	@Override public void onCreate(SQLiteDatabase db) {
-		db.execSQL(
-			"CREATE TABLE " + BUS_TABLE_NAME +
-				"(" +
-				COLUMN_BUS_NUMBER + " TEXT UNIQUE PRIMARY KEY, " +
-				COLUMN_BUS_CAPAT_1 + " TEXT, " +
-				COLUMN_BUS_CAPAT_2 + " TEXT, " +
-				COLUMN_ORAR_LV_CAPAT_1 + " TEXT, " +
-				COLUMN_ORAR_LV_CAPAT_2 + " TEXT," +
-				COLUMN_ORAR_S_CAPAT1 + " TEXT," +
-				COLUMN_ORAR_S_CAPAT2 + " TEXT, " +
-				COLUMN_ORAR_D_CAPAT1 + " TEXT, " +
-				COLUMN_ORAR_D_CAPAT2 + " TEXT" +
-				");"
-		);
-	}
+    @Override public void onCreate(SQLiteDatabase db) {
+        db.execSQL(
+                "CREATE TABLE " + BUS_TABLE_NAME +
+                        "(_id INTEGER PRIMARY KEY, " +
+                        COLUMN_BUS_NUMBER + " TEXT, " +
+                        COLUMN_BUS_NAME + " TEXT, " +
+                        COLUMN_BUS_CAPAT_1 + " TEXT, " +
+                        COLUMN_BUS_CAPAT_2 + " TEXT, " +
+                        COLUMN_ORAR_LV_CAPAT_1 + " TEXT, " +
+                        COLUMN_ORAR_LV_CAPAT_2 + " TEXT," +
+                        COLUMN_ORAR_S_CAPAT1 + " TEXT," +
+                        COLUMN_ORAR_S_CAPAT2 + " TEXT, " +
+                        COLUMN_ORAR_D_CAPAT1 + " TEXT, " +
+                        COLUMN_ORAR_D_CAPAT2 + " TEXT" +
+                        ");"
+        );
+    }
 
-	@Override public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		//todo update this handling
-		Log.w(DatabaseHandler.class.getName(),
-			"Upgrading database from version " + oldVersion + " to "
-				+ newVersion + ", which will destroy all old data ==== create a .sql file " +
-				"that updates the old database to the new one, and save it in res folder");
+    @Override public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + BUS_TABLE_NAME);
+        onCreate(db);
+    }
 
-		db.execSQL("DROP TABLE IF EXISTS " + BUS_TABLE_NAME);
-		onCreate(db);
-	}
+    public String getBusNumber(String busName) {
+        Cursor c = getReadableDatabase().query(
+                BUS_TABLE_NAME, new String[]{COLUMN_BUS_NUMBER}, COLUMN_BUS_NAME + " = ?",
+                new String[]{busName}, null, null, null);
+        String result = "";
+        try {
+            if (c != null && c.moveToFirst()) {
+                result = c.getString(0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) c.close();
+        }
 
-	public int getBusTableCount(){
+        return result;
+    }
 
-		SQLiteDatabase db = getReadableDatabase();
-		Cursor c = db.rawQuery("SELECT * FROM " + BUS_TABLE_NAME, null);
-		int result = c.getCount();
-		c.close();
-		return result;
-	}
+    public int getBusTableCount(){
 
-	public boolean isActualized(int busTableCreatedDay){
-		boolean result;
-		result = (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) - busTableCreatedDay) < BUS_TABLE_REFRESH_INTERVAL;
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM " + BUS_TABLE_NAME, null);
+        int result = c.getCount();
+        c.close();
+        return result;
+    }
 
-		if(!result){
-			SQLiteDatabase db = getWritableDatabase();
-			db.execSQL("DROP TABLE IF EXISTS " + BUS_TABLE_NAME);
-			onCreate(db);
-		}
+    public boolean isActualized(int busTableCreatedDay){
+        boolean result;
+        result = (Calendar.getInstance().get(Calendar.DAY_OF_YEAR) - busTableCreatedDay) < BUS_TABLE_REFRESH_INTERVAL;
 
-		return result;
-	}
+        if(!result){
+            SQLiteDatabase db = getWritableDatabase();
+            db.execSQL("DROP TABLE IF EXISTS " + BUS_TABLE_NAME);
+            onCreate(db);
+        }
 
-	public void insertBusScheduleForToday(String busNumber, String capat1, String capat2,
-																				String orarCapat1Today, String orarCapat2Today){
+        return result;
+    }
 
-		SQLiteDatabase db = getWritableDatabase();
+    public void insertBusNames(List<BusSchedule> list) {
+        SQLiteDatabase db = getWritableDatabase();
 
-		ContentValues rowValues = new ContentValues();
-		rowValues.put(COLUMN_BUS_NUMBER, busNumber);
-		rowValues.put(COLUMN_BUS_CAPAT_1, capat1);
-		rowValues.put(COLUMN_BUS_CAPAT_2, capat2);
-		switch (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)){
-			case Calendar.SATURDAY:
-				rowValues.put(COLUMN_ORAR_S_CAPAT1, orarCapat1Today);
-				rowValues.put(COLUMN_ORAR_S_CAPAT2, orarCapat2Today);
-				break;
-			case Calendar.SUNDAY:
-				rowValues.put(COLUMN_ORAR_D_CAPAT1, orarCapat1Today);
-				rowValues.put(COLUMN_ORAR_D_CAPAT2, orarCapat2Today);
-			default:
-				rowValues.put(COLUMN_ORAR_LV_CAPAT_1, orarCapat1Today);
-				rowValues.put(COLUMN_ORAR_LV_CAPAT_2, orarCapat2Today);
-		}
+        db.beginTransaction();
+        try {
+            for (BusSchedule b : list) {
+                db.insert(BUS_TABLE_NAME, null, getContentValues(b));
+            }
 
-		if(hasBusNumber(busNumber)){
-			db.update(BUS_TABLE_NAME, rowValues, COLUMN_BUS_NUMBER + " = ? ", new String[]{busNumber});
-		}else{
-			db.insert(BUS_TABLE_NAME, null, rowValues);
-		}
-	}
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
 
-	public void insertBusScheduleNotExistent(String busNumber){
-		ContentValues rowValues = new ContentValues();
-		rowValues.put(COLUMN_BUS_NUMBER, busNumber);
+    public List<String> getAllBuses() {
+        List<String> result = new ArrayList<>();
 
-		if(hasBusNumber(busNumber)){
-			//trace
-			Cursor c = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}, null, null, null);
-			c.close();
+        Cursor c = getReadableDatabase().query(
+                BUS_TABLE_NAME, new String[]{COLUMN_BUS_NAME}, null, null, null, null, null);
 
-			getWritableDatabase().update(
-				BUS_TABLE_NAME,
-				rowValues,
-				COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}
-			);
+        try {
+            if (c != null && c.moveToFirst()) {
+                do {
+                    result.add(c.getString(0));
+                } while (c.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) c.close();
+        }
 
-			Cursor c1 = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}, null, null, null);
-			c1.close();
+        return result;
+    }
 
-		}else{
-			getWritableDatabase().insert(BUS_TABLE_NAME, null, rowValues);
-		}
-	}
+    public void updateBusDepartures(BusSchedule b) {
+        getWritableDatabase().update(BUS_TABLE_NAME, getContentValues(b),
+                COLUMN_BUS_NUMBER+"=?", new String[]{b.getBusNumber()});
+    }
 
-	public boolean hasBusNumber(String busNumber){
-		boolean result;
+    public BusSchedule getBusSchedule(String busName) {
+        BusSchedule result = null;
 
-		Cursor c = getReadableDatabase().query(
-			BUS_TABLE_NAME,
-			new String[]{COLUMN_BUS_NUMBER},
-			COLUMN_BUS_NUMBER + " = ? ", new String[]{busNumber},
-			null, null, null
-		);
+        Cursor c = getReadableDatabase().query(BUS_TABLE_NAME, null,
+                COLUMN_BUS_NAME + "=?", new String[]{busName}, null, null, null);
 
-		result = c.getCount() > 0;
-		c.close();
-		return result;
-	}
+        try {
+            if (c != null && c.moveToFirst()) {
+                result = buildBusSchedule(c);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) c.close();
+        }
 
-	public boolean hasBusScheduleForToday(String busNumber){
-		if (busNumber.length() == 0) return false;
+        return result;
+    }
 
-		boolean result;
-		String[] columnsForToday = new String[2];
-		switch (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)){
-			case Calendar.SATURDAY:
-				columnsForToday[0] = COLUMN_ORAR_S_CAPAT1;
-				columnsForToday[1] = COLUMN_ORAR_S_CAPAT2;
-				break;
-			case Calendar.SUNDAY:
-				columnsForToday[0] = COLUMN_ORAR_D_CAPAT1;
-				columnsForToday[1] = COLUMN_ORAR_D_CAPAT2;
-				break;
-			default:
-				columnsForToday[0] = COLUMN_ORAR_LV_CAPAT_1;
-				columnsForToday[1] = COLUMN_ORAR_LV_CAPAT_2;
-		}
+    private BusSchedule buildBusSchedule(Cursor c) {
+        BusSchedule result = new BusSchedule();
 
-		Cursor c = getReadableDatabase().query(
-			BUS_TABLE_NAME,
-			columnsForToday,
-			COLUMN_BUS_NUMBER + " = ?", new String[]{busNumber},
-			null, null, null
-		);
+        result.setName(c.getString(c.getColumnIndex(COLUMN_BUS_NAME)));
+        result.setBusNumber(c.getString(c.getColumnIndex(COLUMN_BUS_NUMBER)));
+        result.setNameCapat1(c.getString(c.getColumnIndex(COLUMN_BUS_CAPAT_1)));
+        result.setNameCapat2(c.getString(c.getColumnIndex(COLUMN_BUS_CAPAT_2)));
+        result.setPlecariCapat1LV(c.getString(c.getColumnIndex(COLUMN_ORAR_LV_CAPAT_1)));
+        result.setPlecariCapat2LV(c.getString(c.getColumnIndex(COLUMN_ORAR_LV_CAPAT_2)));
+        result.setPlecariCapat1S(c.getString(c.getColumnIndex(COLUMN_ORAR_S_CAPAT1)));
+        result.setPlecariCapat2S(c.getString(c.getColumnIndex(COLUMN_ORAR_S_CAPAT2)));
+        result.setPlecariCapat1D(c.getString(c.getColumnIndex(COLUMN_ORAR_D_CAPAT1)));
+        result.setPlecariCapat2D(c.getString(c.getColumnIndex(COLUMN_ORAR_D_CAPAT2)));
 
-		result = c.getCount() > 0;
+        return result;
+    }
 
-		c.close();
+    private ContentValues getContentValues(BusSchedule b) {
+        ContentValues values = new ContentValues();
 
-		return result;
-	}
+        values.put(COLUMN_BUS_NAME, b.getName());
+        values.put(COLUMN_BUS_NUMBER, b.getBusNumber());
+        values.put(COLUMN_BUS_CAPAT_1, b.getNameCapat1());
+        values.put(COLUMN_BUS_CAPAT_2, b.getNameCapat2());
+        values.put(COLUMN_ORAR_LV_CAPAT_1, b.getPlecariCapat1LV());
+        values.put(COLUMN_ORAR_LV_CAPAT_2, b.getPlecariCapat2LV());
+        values.put(COLUMN_ORAR_S_CAPAT1, b.getPlecariCapat1S());
+        values.put(COLUMN_ORAR_S_CAPAT2, b.getPlecariCapat2S());
+        values.put(COLUMN_ORAR_D_CAPAT1, b.getPlecariCapat1D());
+        values.put(COLUMN_ORAR_D_CAPAT2, b.getPlecariCapat2D());
 
-	/**
-	 * This method returns a row from the bus table
-	 * @param busNumber row identifier
-	 * @return HashMap{NUME_CAPETE:{0,1}, PLECARI_CAPAT_1:{...}, PLECARI_CAPAT_2:{...}
-	 */
-	public HashMap<String,ArrayList<String>> getBusScheduleForToday(String busNumber){
+        return values;
+    }
 
-		HashMap<String, ArrayList<String>> result = new HashMap<>();
+    public void insertBusScheduleForToday(BusSchedule busSchedule){
 
-		ArrayList<String> numeCapete = new ArrayList<>();
-		ArrayList<String> plecariCapat1 = new ArrayList<>();
-		ArrayList<String> plecariCapat2 = new ArrayList<>();
+        SQLiteDatabase db = getWritableDatabase();
 
-		String columnOrarCapat1Today, columnOrarCapat2Today;
+        if(hasBusNumber(busSchedule.getBusNumber())){
+            db.update(BUS_TABLE_NAME, getContentValues(busSchedule),
+                    COLUMN_BUS_NUMBER + " = ? ", new String[]{busSchedule.getBusNumber()});
+        }else{
+            db.insert(BUS_TABLE_NAME, null, getContentValues(busSchedule));
+        }
+    }
 
-		switch (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)){
-			case Calendar.SATURDAY:
-				columnOrarCapat1Today = COLUMN_ORAR_S_CAPAT1;
-				columnOrarCapat2Today = COLUMN_ORAR_S_CAPAT2;
-				break;
-			case Calendar.SUNDAY:
-				columnOrarCapat1Today = COLUMN_ORAR_D_CAPAT1;
-				columnOrarCapat2Today = COLUMN_ORAR_D_CAPAT2;
-				break;
-			default:
-				columnOrarCapat1Today = COLUMN_ORAR_LV_CAPAT_1;
-				columnOrarCapat2Today = COLUMN_ORAR_LV_CAPAT_2;
-		}
+    public void insertBusScheduleNotExistent(String busNumber){
+        ContentValues rowValues = new ContentValues();
+        rowValues.put(COLUMN_BUS_NUMBER, busNumber);
 
-		Cursor c = getReadableDatabase().query(
-			BUS_TABLE_NAME,
-			new String[]{COLUMN_BUS_CAPAT_1, COLUMN_BUS_CAPAT_2, columnOrarCapat1Today, columnOrarCapat2Today},
-			COLUMN_BUS_NUMBER + " = ? ", new String[]{busNumber},
-			null, null, null);
+        if(hasBusNumber(busNumber)){
+            //trace
+            Cursor c = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}, null, null, null);
+            c.close();
 
-		if(c.getCount() > 0) {
-			c.moveToFirst();
-			numeCapete.add(c.getString(c.getColumnIndex(COLUMN_BUS_CAPAT_1)));
-			numeCapete.add(c.getString(c.getColumnIndex(COLUMN_BUS_CAPAT_2)));
+            getWritableDatabase().update(
+                    BUS_TABLE_NAME,
+                    rowValues,
+                    COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}
+            );
 
-			String csvPlecariCapat1 = c.getString(c.getColumnIndex(columnOrarCapat1Today));
-			if (csvPlecariCapat1 != null) {
-				Collections.addAll(plecariCapat1, csvPlecariCapat1.split(", "));
-			}
-			String csvPlecariCapat2 = c.getString(c.getColumnIndex(columnOrarCapat2Today));
-			if (csvPlecariCapat2 != null) {
-				Collections.addAll(plecariCapat2, csvPlecariCapat2.split(", "));
-			}
-		}
+            Cursor c1 = getReadableDatabase().query(BUS_TABLE_NAME, new String[]{COLUMN_ORAR_LV_CAPAT_1}, COLUMN_BUS_NUMBER+"=?", new String[]{busNumber}, null, null, null);
+            c1.close();
 
-		c.close();
+        }else{
+            getWritableDatabase().insert(BUS_TABLE_NAME, null, rowValues);
+        }
+    }
 
-		result.put(Factory.NUME_CAPETE, numeCapete);
-		result.put(Factory.PLECARI_CAPAT_1, plecariCapat1);
-		result.put(Factory.PLECARI_CAPAT_2, plecariCapat2);
+    public boolean hasBusNumber(String busNumber){
+        boolean result;
 
-		return result;
-	}
+        Cursor c = getReadableDatabase().query(
+                BUS_TABLE_NAME,
+                new String[]{COLUMN_BUS_NUMBER},
+                COLUMN_BUS_NUMBER + " = ? ", new String[]{busNumber},
+                null, null, null
+        );
+
+        result = c.getCount() > 0;
+        c.close();
+        return result;
+    }
+
+    public boolean hasBusSchedule(String busName){
+        if (busName.length() == 0) return false;
+
+        boolean result;
+
+        Cursor c = getReadableDatabase().query(
+                BUS_TABLE_NAME,
+                new String[]{COLUMN_ORAR_LV_CAPAT_1},
+                COLUMN_BUS_NAME + " = ?", new String[]{busName},
+                null, null, null
+        );
+
+        result = c.getCount() > 0;
+
+        c.close();
+
+        return result;
+    }
+
+    public HashMap<String,ArrayList<String>> getBusScheduleForTodayByNr(String busNumber){
+        return getBusScheduleForToday(COLUMN_BUS_NUMBER, busNumber);
+    }
+
+    public HashMap<String, ArrayList<String>> getBusScheduleForTodayByName(String busName) {
+        return getBusScheduleForToday(COLUMN_BUS_NAME, busName);
+    }
+
+    private HashMap<String, ArrayList<String>> getBusScheduleForToday(String column, String value) {
+        HashMap<String, ArrayList<String>> result = new HashMap<>();
+
+        ArrayList<String> numeCapete = new ArrayList<>();
+        ArrayList<String> plecariCapat1 = new ArrayList<>();
+        ArrayList<String> plecariCapat2 = new ArrayList<>();
+
+        String columnOrarCapat1Today, columnOrarCapat2Today;
+
+        switch (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)){
+            case Calendar.SATURDAY:
+                columnOrarCapat1Today = COLUMN_ORAR_S_CAPAT1;
+                columnOrarCapat2Today = COLUMN_ORAR_S_CAPAT2;
+                break;
+            case Calendar.SUNDAY:
+                columnOrarCapat1Today = COLUMN_ORAR_D_CAPAT1;
+                columnOrarCapat2Today = COLUMN_ORAR_D_CAPAT2;
+                break;
+            default:
+                columnOrarCapat1Today = COLUMN_ORAR_LV_CAPAT_1;
+                columnOrarCapat2Today = COLUMN_ORAR_LV_CAPAT_2;
+        }
+
+        Cursor c = getReadableDatabase().query(
+                BUS_TABLE_NAME,
+                new String[]{COLUMN_BUS_CAPAT_1, COLUMN_BUS_CAPAT_2, columnOrarCapat1Today, columnOrarCapat2Today},
+                column + " = ? ", new String[]{value},
+                null, null, null);
+
+        if(c.getCount() > 0) {
+            c.moveToFirst();
+
+            numeCapete.add(c.getString(c.getColumnIndex(COLUMN_BUS_CAPAT_1)));
+            numeCapete.add(c.getString(c.getColumnIndex(COLUMN_BUS_CAPAT_2)));
+
+            String csvPlecariCapat1 = c.getString(c.getColumnIndex(columnOrarCapat1Today));
+            if (csvPlecariCapat1 != null) {
+                Collections.addAll(plecariCapat1, csvPlecariCapat1.split(","));
+            }
+
+            String csvPlecariCapat2 = c.getString(c.getColumnIndex(columnOrarCapat2Today));
+            if (csvPlecariCapat2 != null) {
+                Collections.addAll(plecariCapat2, csvPlecariCapat2.split(","));
+            }
+        }
+
+        c.close();
+
+        result.put(Factory.NUME_CAPETE, numeCapete);
+        result.put(Factory.PLECARI_CAPAT_1, plecariCapat1);
+        result.put(Factory.PLECARI_CAPAT_2, plecariCapat2);
+
+        return result;
+    }
 
 }

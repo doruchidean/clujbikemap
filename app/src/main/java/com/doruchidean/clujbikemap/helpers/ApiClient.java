@@ -1,13 +1,12 @@
 package com.doruchidean.clujbikemap.helpers;
 
-import com.doruchidean.clujbikemap.activities.MapsActivity;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * Created by Doru on 19/11/15.
@@ -21,7 +20,9 @@ public class ApiClient {
 	private final OkHttpClient client;
 
 	public ApiClient(){
-		client = new OkHttpClient();
+		HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+		interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+		client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 	}
 
 	public static ApiClient getInstance(){
@@ -31,7 +32,6 @@ public class ApiClient {
 	public void getStations(Callback callback){
 		String baseUrl = "http://84.232.185.103";
 		String getStations = "/Station/Read";
-		MapsActivity.trace("get stations: " + baseUrl + getStations);
 
 		Request request = new Request.Builder()
 			.url(baseUrl + getStations)
@@ -44,10 +44,8 @@ public class ApiClient {
 
 	public void getBusSchedule(Callback callback, String busNumber){
 
-		String busUrl = "http://ctpcj.ro/orare/csv/orar_BUS_PERIOD.csv";
+		String busUrl = "http://ctp.gapwalk.com/?orar=BUS_PERIOD";
 		String url = GeneralHelper.resolveDayOfWeekInUrl(busNumber, busUrl);
-
-		MapsActivity.trace("getting bus " + busNumber + " at: " + url);
 
 		Request request = new Request.Builder()
 			.url(url)
@@ -68,8 +66,6 @@ public class ApiClient {
 			.addQueryParameter("key", key)
 			.build();
 
-		MapsActivity.trace("getDistance:  " + url.toString());
-
 		Request request = new Request.Builder()
 			.url(url)
 			.build();
@@ -86,4 +82,11 @@ public class ApiClient {
 		response.enqueue(callback);
 	}
 
+	public void getAllBuses(Callback callback) {
+		client.newCall(new Request.Builder()
+				.url("http://ctp.gapwalk.com/?linii=linii")
+				.build()
+			)
+			.enqueue(callback);
+	}
 }

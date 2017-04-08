@@ -44,7 +44,6 @@ public class NotificationHandler extends BroadcastReceiver{
 		notificationManager.notify(0, notification);
 
 		PersistenceManager.setIsCountingDown(context, false);
-		MapsActivity.trace(" notified @ --:" + Calendar.getInstance().get(Calendar.MINUTE));
 	}
 
 }
